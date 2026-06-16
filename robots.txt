@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://animeverse-4c635.web.app/sitemap.xml

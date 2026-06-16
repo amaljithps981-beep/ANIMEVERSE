@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watched - AnimeVerse</title>
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- SEO & Open Graph Tags -->
+    <meta name="description" content="AnimeVerse - The Ultimate Anime Streaming & Tracking Platform. Track, discover, and watch your favorite Anime, Movies, and TV Series.">
+    <meta name="keywords" content="Anime, Streaming, Tracking, Manga, Movies, TV Series, AnimeVerse">
+    <meta property="og:title" content="AnimeVerse">
+    <meta property="og:description" content="The Ultimate Anime Tracking Platform.">
+    <meta property="og:image" content="https://animeverse-4c635.web.app/icon-512.png">
+    <meta property="og:url" content="https://animeverse-4c635.web.app">
+    <meta name="twitter:card" content="summary_large_image">
+
+</head>
+<body>
+
+<nav>
+    <a href="index.html" style="text-decoration: none;"><h1>Anime<span>Verse</span></h1></a>
+    <div class="nav-actions">
+        <button onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); } else { window.location.href='index.html'; }" class="btn-secondary" style="padding: 8px 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">← Back</button>
+    </div>
+</nav>
+
+<section>
+    <h2 class="section-title">Watched Content ✅</h2>
+    <div id="watchedContainer" class="anime-container">
+        <p style="color: var(--text-muted); padding-left: 5%;">Loading watched items...</p>
+    </div>
+</section>
+
+<script type="module" src="watched.js"></script>
+</body>
+</html>

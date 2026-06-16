@@ -1,0 +1,71 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the authenticated user is an admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Helper function to check if the request matches the document owner
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Rules for User profiles (stores metadata and PWA lists in primary path)
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Rules for secondary/backup user lists (favorites, watched, myList, watchHistory, continueWatching)
+    match /favorites/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /watched/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /myList/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /watchHistory/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /continueWatching/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Rules for personalization analytics
+    match /userPreferences/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /genreAnalytics/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /recommendations/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /mlDataset/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Rules for global content filters managed by admin
+    match /featuredContent/{document} {
+      allow read: if true; // anyone can view featured content on homepage
+      allow write: if isAdmin(); // only admins can feature content
+    }
+    match /hiddenContent/{document} {
+      allow read: if true; // anyone can fetch blocked content list to filter cards
+      allow write: if isAdmin(); // only admins can block content
+    }
+
+    // Rules for global recommendation performance analytics
+    match /analytics/recommendations {
+      // Allow anybody (even non-admins) to update the metrics (clicks/impressions) via merge/increments
+      allow read: if isAdmin();
+      allow create, update: if request.auth != null;
+      allow delete: if isAdmin();
+    }
+  }
+}

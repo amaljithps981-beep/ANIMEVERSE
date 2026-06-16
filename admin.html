@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AnimeVerse</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <!-- Chart.js for statistics rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- SEO & Open Graph Tags -->
+    <meta name="description" content="AnimeVerse - The Ultimate Anime Streaming & Tracking Platform. Track, discover, and watch your favorite Anime, Movies, and TV Series.">
+    <meta name="keywords" content="Anime, Streaming, Tracking, Manga, Movies, TV Series, AnimeVerse">
+    <meta property="og:title" content="AnimeVerse">
+    <meta property="og:description" content="The Ultimate Anime Tracking Platform.">
+    <meta property="og:image" content="https://animeverse-4c635.web.app/icon-512.png">
+    <meta property="og:url" content="https://animeverse-4c635.web.app">
+    <meta name="twitter:card" content="summary_large_image">
+
+</head>
+<body>
+
+<div class="nav-overlay" id="navOverlay"></div>
+
+<!-- NAVBAR -->
+<nav>
+    <a href="index.html" style="text-decoration: none;"><h1>Anime<span>Verse</span></h1></a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="history.html">History</a></li>
+        <li><a href="favorites.html">Favorites</a></li>
+        <li><a href="watched.html">Watched</a></li>
+        <li><a href="mylist.html">My List</a></li>
+        <li><a href="profile.html">Profile</a></li>
+    </ul>
+    <div class="nav-actions">
+        <a href="index.html" class="btn-secondary" style="padding: 8px 16px;">Back to Home</a>
+    </div>
+</nav>
+
+<!-- MAIN CONTAINER -->
+<div class="admin-container" id="adminDashboardContainer" style="display: none;">
+    <div class="admin-header">
+        <div>
+            <h1>Admin<span> Dashboard</span></h1>
+            <p style="color: var(--text-muted); margin-top: 5px;">Platform Analytics & Content Management Console</p>
+        </div>
+        <div id="adminBadge" class="admin-badge admin">SYSTEM ADMINISTRATOR</div>
+    </div>
+
+    <!-- TABS NAVIGATION -->
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="overview">📊 Platform Overview</button>
+        <button class="admin-tab" data-tab="charts">📈 Analytics Charts</button>
+        <button class="admin-tab" data-tab="content">🎬 Content Management</button>
+        <button class="admin-tab" data-tab="users">👥 User Activity</button>
+        <button class="admin-tab" data-tab="recommendations">🎯 Recommendation Insights</button>
+        <button class="admin-tab" data-tab="ml">🤖 ML Preparation</button>
+    </div>
+
+    <!-- TAB 1: PLATFORM OVERVIEW -->
+    <div id="overviewSection" class="admin-section active">
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">👥</div>
+                <h3 id="statTotalUsers">0</h3>
+                <p>Total Users</p>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">🟢</div>
+                <h3 id="statActiveToday">0</h3>
+                <p>Active Users Today</p>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">📅</div>
+                <h3 id="statActiveWeek">0</h3>
+                <p>Active This Week</p>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">🗓️</div>
+                <h3 id="statActiveMonth">0</h3>
+                <p>Active This Month</p>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">❤️</div>
+                <h3 id="statTotalFavorites">0</h3>
+                <p>Total Favorites</p>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">👀</div>
+                <h3 id="statTotalWatched">0</h3>
+                <p>Total Watched</p>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">📚</div>
+                <h3 id="statTotalMyList">0</h3>
+                <p>Total My List Items</p>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">🕒</div>
+                <h3 id="statTotalHistory">0</h3>
+                <p>Total History Records</p>
+            </div>
+        </div>
+
+        <div class="admin-grid-2col">
+            <!-- Platform Quick Summary -->
+            <div class="admin-panel">
+                <div class="admin-panel-title">⭐ Top Rated Content Trends</div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Title Name</th>
+                                <th>Favorites Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🔥 Most Favorited Anime</td>
+                                <td id="topFavAnime">—</td>
+                                <td id="topFavAnimeCount">0</td>
+                            </tr>
+                            <tr>
+                                <td>🔥 Most Favorited Movie</td>
+                                <td id="topFavMovie">—</td>
+                                <td id="topFavMovieCount">0</td>
+                            </tr>
+                            <tr>
+                                <td>🔥 Most Favorited Series</td>
+                                <td id="topFavTV">—</td>
+                                <td id="topFavTVCount">0</td>
+                            </tr>
+                            <tr>
+                                <td>👀 Most Watched Overall</td>
+                                <td id="topWatchedContent">—</td>
+                                <td id="topWatchedCount">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Genres list -->
+            <div class="admin-panel">
+                <div class="admin-panel-title">📈 Trending Genres Across Platform</div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Genre Name</th>
+                                <th>Tally count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trendingGenresTableBody">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: var(--text-muted);">Aggregating user preferences...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- SEARCH ANALYTICS SECTION -->
+        <div class="admin-panel" style="margin-top: 20px;">
+            <div class="admin-panel-title">🔍 Search Analytics (Platform-wide)</div>
+            <div class="admin-grid-2col">
+                <div>
+                    <h4>Most Searched Titles</h4>
+                    <ul id="mostSearchedList" style="list-style: none; padding: 0; color: #ccc;">
+                        <li>Aggregating searches...</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Failed Searches (No results)</h4>
+                    <ul id="failedSearchesList" style="list-style: none; padding: 0; color: #ff6b6b;">
+                        <li>Aggregating searches...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: ANALYTICS CHARTS -->
+    <div id="chartsSection" class="admin-section">
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h4>User Account Growth</h4>
+                <div class="chart-container">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>Favorites Breakdown by Genre</h4>
+                <div class="chart-container">
+                    <canvas id="genreFavoritesChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>Watched Content Distribution</h4>
+                <div class="chart-container">
+                    <canvas id="contentDistributionChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>Platform User Activity Log</h4>
+                <div class="chart-container">
+                    <canvas id="userActivityLogChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>Daily Visits</h4>
+                <div class="chart-container">
+                    <canvas id="dailyVisitsChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>Favorites Growth Over Time</h4>
+                <div class="chart-container">
+                    <canvas id="favoritesGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: CONTENT MANAGEMENT -->
+    <div id="contentSection" class="admin-section">
+        <div class="admin-grid-2col">
+            <!-- Search & Control Panel -->
+            <div class="admin-panel">
+                <div class="admin-panel-title">🔍 Find & Feature / Hide Content</div>
+                <div class="search-form">
+                    <input type="text" id="contentSearchInput" placeholder="Search Jikan / TMDB (e.g. Solo Leveling, Inception)...">
+                    <button id="contentSearchBtn" class="admin-btn primary">Search</button>
+                </div>
+                <div id="contentSearchResults" style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                    <p style="color: var(--text-muted); text-align: center;">Enter search query to manage titles.</p>
+                </div>
+            </div>
+
+            <!-- Featured & Hidden lists -->
+            <div class="admin-panel" style="display: flex; flex-direction: column; gap: 25px;">
+                <div>
+                    <div class="admin-panel-title">⭐ Featured Homepage Titles</div>
+                    <div id="featuredList" class="admin-table-wrapper" style="max-height: 220px; overflow-y: auto;">
+                        <p style="color: var(--text-muted); text-align: center; padding: 10px 0;">No featured titles found.</p>
+                    </div>
+                </div>
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05);">
+                <div>
+                    <div class="admin-panel-title">🚫 Blocked / Hidden Titles</div>
+                    <div id="hiddenList" class="admin-table-wrapper" style="max-height: 220px; overflow-y: auto;">
+                        <p style="color: var(--text-muted); text-align: center; padding: 10px 0;">No hidden titles found.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: USER ACTIVITY -->
+    <div id="usersSection" class="admin-section">
+        <div class="admin-panel">
+            <div class="admin-panel-title">👥 Top Active Platform Users</div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>User Profile</th>
+                            <th>Role</th>
+                            <th>Favorites</th>
+                            <th>Watched</th>
+                            <th>My List</th>
+                            <th>History Logs</th>
+                            <th>Total Interactions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topUsersTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Fetching user database...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: RECOMMENDATION INSIGHTS -->
+    <div id="recommendationsSection" class="admin-section">
+        <div class="admin-grid-2col">
+            <!-- Analytics Metrics -->
+            <div class="admin-panel" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 300px;">
+                <div class="admin-panel-title" style="width: 100%;">🎯 Recommendation Click-Through Rate</div>
+                <div class="click-rate-value" id="recClickRate">0.0%</div>
+                <div class="click-rate-subtitle">
+                    Total Impressions: <span id="recImpressions" style="color: white; font-weight: bold;">0</span> &nbsp;|&nbsp; 
+                    Total Clicks: <span id="recClicks" style="color: white; font-weight: bold;">0</span>
+                </div>
+                <p style="margin-top: 20px; color: var(--text-muted); font-size: 13px; line-height: 1.5; max-width: 400px;">
+                    This metric tracks the percentage of generated recommendation lists clicked by users, measuring personal relevance and content engagement accuracy.
+                </p>
+            </div>
+
+            <!-- Most Recommended Titles -->
+            <div class="admin-panel">
+                <div class="admin-panel-title">📈 Most Recommended Titles</div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Title</th>
+                                <th>Recommendations Shown</th>
+                                <th>Direct Clicks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mostRecommendedTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-muted);">Analyzing recommendation logs...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 6: ML PREPARATION -->
+    <div id="mlSection" class="admin-section">
+        <div class="admin-flex-row">
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">🤖 Dataset Generation & ML Prep</div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    Generate a normalized machine learning dataset from all user activity across the platform. This dataset will extract explicit user preferences, clean historical records, and output standardized feature arrays for Python model training.
+                </p>
+                
+                <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                    <button id="btnGenerateDataset" class="btn-primary" style="flex:1;">⚙️ Generate Platform Dataset</button>
+                    <button id="btnExportJSON" class="btn-secondary" style="flex:1; display:none;">💾 Export JSON</button>
+                    <button id="btnExportCSV" class="btn-secondary" style="flex:1; display:none;">📊 Export CSV</button>
+                </div>
+
+                <div id="mlDatasetStatus" style="padding: 15px; border-radius: 8px; background: rgba(0,0,0,0.2); font-family: monospace; font-size: 13px; color: var(--text-muted); height: 150px; overflow-y: auto;">
+                    Awaiting generation...
+                </div>
+            </div>
+            
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">📊 Dataset Statistics</div>
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">📄</div>
+                        <h3 id="mlTotalRecords">0</h3>
+                        <p>Total Records</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">👥</div>
+                        <h3 id="mlTotalUsers">0</h3>
+                        <p>Users Processed</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🎭</div>
+                        <h3 id="mlPopularGenre" style="font-size:22px; text-transform:capitalize;">—</h3>
+                        <p>Most Popular Genre</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">📺</div>
+                        <h3 id="mlPopularType" style="font-size:22px; text-transform:capitalize;">—</h3>
+                        <p>Most Popular Type</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="admin.js"></script>
+
+</body>
+</html>

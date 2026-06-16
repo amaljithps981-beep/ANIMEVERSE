@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Details</title>
+    <link rel="icon" type="image/png" href="icon-192.png">
+
+    <link rel="stylesheet"
+          href="style.css">
+
+
+    <!-- SEO & Open Graph Tags -->
+    <meta name="description" content="AnimeVerse - The Ultimate Anime Streaming & Tracking Platform. Track, discover, and watch your favorite Anime, Movies, and TV Series.">
+    <meta name="keywords" content="Anime, Streaming, Tracking, Manga, Movies, TV Series, AnimeVerse">
+    <meta property="og:title" content="AnimeVerse">
+    <meta property="og:description" content="The Ultimate Anime Tracking Platform.">
+    <meta property="og:image" content="https://animeverse-4c635.web.app/icon-512.png">
+    <meta property="og:url" content="https://animeverse-4c635.web.app">
+    <meta name="twitter:card" content="summary_large_image">
+
+</head>
+
+<body>
+
+      <a href="javascript:void(0)" onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); } else { window.location.href='index.html'; }" class="back-link">
+            ← Back
+      </a>
+
+    
+<div id="playerContainer"
+     class="player-wrapper" style="position: relative;">
+
+    <div id="playerLoading" class="skeleton" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.7); font-size: 20px; font-weight: bold; flex-direction: column; gap: 10px; z-index: 10;">
+        🎬 Loading Trailer...
+    </div>
+
+    <iframe
+        id="trailerFrame"
+        style="width: 100%; height: 100%; border: none;"
+        allow="autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowfullscreen>
+    </iframe>
+
+</div>
+
+<div class="info-section">
+      <div class="info-left">
+            <img id="detailsPoster" src="" />
+      </div>
+      <div class="info-right">
+            <h1 id="detailsTitle"></h1>
+            <div class="meta-row">
+                  <span id="detailsRating"></span>
+                  <span id="detailsYear"></span>
+                  <span id="detailsType"></span>
+            </div>
+            <div id="genresContainer" class="genres">
+            </div>
+            <p id="detailsDescription"></p>
+                  <div class="action-buttons">
+
+                        <button id="playBtn" class="play-btn">
+                              ▶ Play
+                        </button>
+
+                        <button id="episodeBtn" class="episode-btn">
+                              📺 Episodes
+                        </button>
+                        <button id="watchedBtn"
+        class="btn-primary">
+
+    ✅ Mark as Watched
+</button>
+
+<button id="myListBtn" class="btn-secondary" style="border-radius:30px; font-weight:bold; cursor:pointer;">
+    ➕ My List
+</button>
+
+<button id="favoriteBtn" class="btn-secondary" style="border-radius:30px; font-weight:bold; cursor:pointer;">
+    ❤️ Favorite
+</button>
+
+                  </div>
+        </div>
+</div>
+
+<section class="episodes-section" id="episodesSection">
+
+      <div class="episodes-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>📺 Episodes</h2>
+            <div id="seasonSelectContainer"></div>
+      </div>
+
+      <div id="episodesContainer">
+            <div class="episode-card skeleton" style="height: 50px; width: 100%; margin-bottom: 10px;"></div>
+            <div class="episode-card skeleton" style="height: 50px; width: 100%; margin-bottom: 10px;"></div>
+            <div class="episode-card skeleton" style="height: 50px; width: 100%; margin-bottom: 10px;"></div>
+      </div>
+
+</section>
+
+<section class="similar-section" id="similarSection">
+      <h2>🔥 More Like This</h2>
+      <div id="similarContainer" class="anime-container">
+            <div class="card skeleton" style="height: 320px;"></div>
+            <div class="card skeleton" style="height: 320px;"></div>
+            <div class="card skeleton" style="height: 320px;"></div>
+            <div class="card skeleton" style="height: 320px;"></div>
+            <div class="card skeleton" style="height: 320px;"></div>
+            <div class="card skeleton" style="height: 320px;"></div>
+      </div>
+</section>
+
+<section class="cast-section" id="castSection">
+      <h2>🎭 Cast & Crew</h2>
+      <div id="castContainer" class="cast-grid">
+            <div class="cast-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="cast-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="cast-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="cast-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="cast-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="cast-card skeleton" style="height: 230px; width: 140px;"></div>
+      </div>
+</section>
+
+<section class="cast-section" id="animeCharactersSection">
+      <h2>🎭 Main Characters</h2>
+
+      <div id="animeCharacters" class="cast-grid">
+            <div class="character-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="character-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="character-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="character-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="character-card skeleton" style="height: 230px; width: 140px;"></div>
+            <div class="character-card skeleton" style="height: 230px; width: 140px;"></div>
+      </div>
+
+</section>
+
+<div id="detailsContainer"
+     class="details-container">
+
+</div>
+
+
+<script type="module" src="details.js"></script>
+
+</body>
+
+</html>
+

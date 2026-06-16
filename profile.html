@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - AnimeVerse</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    
+    <!-- SEO & Open Graph Tags -->
+    <meta name="description" content="AnimeVerse - The Ultimate Anime Streaming & Tracking Platform. Track, discover, and watch your favorite Anime, Movies, and TV Series.">
+    <meta name="keywords" content="Anime, Streaming, Tracking, Manga, Movies, TV Series, AnimeVerse">
+    <meta property="og:title" content="AnimeVerse">
+    <meta property="og:description" content="The Ultimate Anime Tracking Platform.">
+    <meta property="og:image" content="https://animeverse-4c635.web.app/icon-512.png">
+    <meta property="og:url" content="https://animeverse-4c635.web.app">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+<nav>
+    <h1 onclick="window.location.href='index.html'">Anime<span>Verse</span></h1>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="favorites.html">Favorites</a></li>
+        <li><a href="watched.html">Watched</a></li>
+        <li><a href="mylist.html">My List</a></li>
+        <li><a href="history.html">History</a></li>
+        <li><a href="profile.html" style="color: var(--text-main);">Profile</a></li>
+    </ul>
+    <div class="nav-actions">
+        <button id="logoutBtn" class="btn-secondary" style="padding: 8px 20px;">Logout</button>
+    </div>
+</nav>
+
+<div style="padding: 100px 5% 50px;">
+    
+    <div class="profile-header" style="display: flex; align-items: center; gap: 30px; margin-bottom: 40px;">
+        <img id="userAvatar" src="https://i.pinimg.com/736x/8b/16/7a/8b167af653c2399dd93b952a48740620.jpg" alt="Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent);">
+        <div>
+            <h2 id="userName" style="font-size: 32px; margin-bottom: 5px;">Loading...</h2>
+            <p id="userEmail" style="color: var(--text-muted); font-size: 16px;">—</p>
+        </div>
+    </div>
+
+    <!-- PROFILE INSIGHTS DASHBOARD -->
+    <h2 class="section-title">📊 Your Insights</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <h3 id="topGenre" style="font-size:22px; text-transform:capitalize;">—</h3>
+            <p>Favorite Genre</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📺</div>
+            <h3 id="topType" style="font-size:22px; text-transform:capitalize;">—</h3>
+            <p>Favorite Content Type</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <h3 id="recAccuracy">0%</h3>
+            <p>Recommendation Accuracy</p>
+        </div>
+        <a href="favorites.html" style="text-decoration:none;">
+            <div class="stat-card">
+                <div class="stat-icon">❤️</div>
+                <h3 id="statFavorites">0</h3>
+                <p>Total Favorites</p>
+            </div>
+        </a>
+        <a href="mylist.html" style="text-decoration:none;">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <h3 id="statList">0</h3>
+                <p>Total My List</p>
+            </div>
+        </a>
+        <div class="stat-card">
+            <div class="stat-icon">🎬</div>
+            <h3 id="statContinue">0</h3>
+            <p>Continue Watching</p>
+        </div>
+        <a href="history.html" style="text-decoration:none;">
+            <div class="stat-card">
+                <div class="stat-icon">🕒</div>
+                <h3 id="statHistory">0</h3>
+                <p>Total History</p>
+            </div>
+        </a>
+        <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <h3 id="avgRating" style="font-size:26px;">—</h3>
+            <p>Average Rating</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🌟</div>
+            <h3 id="viewingStreak" style="font-size:26px;">0 Days</h3>
+            <p>Viewing Streak</p>
+        </div>
+    </div>
+
+    <!-- RECENTLY WATCHED CAROUSEL -->
+    <section id="recentWatchSection" style="margin-top: 40px; text-align: left;">
+        <h2 class="section-title">🕒 Recently Watched</h2>
+        <div class="carousel-wrapper">
+            <div id="recentWatchContainer" class="anime-container carousel-container" style="justify-content: flex-start; gap: 15px;">
+                <!-- Filled dynamically by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ACTIVITY TIMELINE -->
+    <section id="activityTimelineSection" style="margin-top: 40px; text-align: left;">
+        <h2 class="section-title">📅 Activity Timeline</h2>
+        
+        <div class="timeline-tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn-primary timeline-tab active" data-period="today">Today</button>
+            <button class="btn-secondary timeline-tab" data-period="week">This Week</button>
+            <button class="btn-secondary timeline-tab" data-period="month">This Month</button>
+        </div>
+        
+        <div class="timeline-container" id="timelineContainer" style="background: var(--bg-card); padding: 20px; border-radius: 8px;">
+            <!-- Filled dynamically by JS -->
+        </div>
+    </section>
+</div>
+
+<script type="module" src="profile.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(reg => console.log('Service Worker registered successfully!', reg.scope))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
