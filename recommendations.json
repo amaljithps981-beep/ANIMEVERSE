@@ -1,0 +1,25 @@
+{
+  "uid": "user123",
+  "recommendations": [
+    {
+      "contentId": 28851,
+      "title": "A Silent Voice",
+      "score": 0.379
+    },
+    {
+      "contentId": 1535,
+      "title": "Death Note",
+      "score": 0.334
+    },
+    {
+      "contentId": 9253,
+      "title": "Steins;Gate",
+      "score": 0.263
+    },
+    {
+      "contentId": 32281,
+      "title": "Your Name.",
+      "score": 0.244
+    }
+  ]
+}

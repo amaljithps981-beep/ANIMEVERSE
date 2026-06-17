@@ -39,6 +39,7 @@
         <li><a href="watched.html">Watched</a></li>
         <li><a href="mylist.html">My List</a></li>
         <li><a href="profile.html">Profile</a></li>
+        <li><a href="chat.html" style="color: #e50914; font-weight: bold;">🤖 AI Chat</a></li>
         <li id="adminNavLink" style="display:none;"><a href="admin.html" style="color: var(--accent); font-weight: bold;">🛡️ Admin</a></li>
         <li class="mobile-only install-btn" style="display:none"><a href="#"><span style="margin-right:8px">📱</span>Install App</a></li>
         <li class="mobile-only"><a href="#" id="mobileLogoutBtn" class="logout-btn">Logout</a></li>
@@ -130,6 +131,22 @@
 <!-- HOMEPAGE CONTENT WRAPPER (hides when filtering genres) -->
 <div id="homeMainContent">
 
+    <!-- SMART SEARCH DASHBOARD: Popular & Trending Searches -->
+    <section id="smartSearchDashboard" style="padding: 20px 5%; display: flex; flex-direction: column; gap: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; margin: 20px 5% 10px; border: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px;">
+            <span style="font-weight: 600; color: rgba(255,255,255,0.6); min-width: 150px; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                🔍 Popular Searches:
+            </span>
+            <div id="popularSearchesGrid" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px; margin-top: 5px;">
+            <span style="font-weight: 600; color: rgba(255,255,255,0.6); min-width: 150px; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                🔥 Trending Searches:
+            </span>
+            <div id="trendingSearchesGrid" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        </div>
+    </section>
+
     <!-- CONTINUE WATCHING -->
     <section id="continueSection" class="hidden">
         <h2 class="section-title">Continue Watching 🎬</h2>
@@ -150,12 +167,14 @@
         </div>
     </section>
 
-    <!-- RECOMMENDED FOR YOU -->
-    <section id="recommendedSection">
-        <h2 class="section-title">🔥 Recommended For You <small id="recommendedGenreLabel" style="font-size:14px;opacity:0.6;"></small></h2>
+    <!-- PHASE 5: HYBRID RECOMMENDATION ENGINE -->
+    
+    <!-- PHASE 9 & 10: AI DEEP RECOMMENDATIONS -->
+    <section id="deepRecommendationsSection" class="hidden">
+        <h2 class="section-title">🔥 AI Deep Recommendations <small style="font-size:14px;opacity:0.6;">(Deep Learning NCF Model)</small></h2>
         <div class="carousel-wrapper">
             <button class="carousel-nav-btn prev">◀</button>
-            <div id="recommendedContainer" class="anime-container carousel-container">
+            <div id="deepRecommendationsContainer" class="anime-container carousel-container">
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
@@ -165,12 +184,12 @@
         </div>
     </section>
 
-    <!-- BECAUSE YOU WATCHED -->
-    <section id="becauseSection">
-        <h2 class="section-title">🎌 <span id="becauseLabel">Because You Watch Anime</span></h2>
+    <!-- 1. BEST MATCH FOR YOU -->
+    <section id="hybridBestMatchSection" class="hidden">
+        <h2 class="section-title">🔥 Best Match For You <small style="font-size:14px;opacity:0.6;">(Hybrid Engine)</small></h2>
         <div class="carousel-wrapper">
             <button class="carousel-nav-btn prev">◀</button>
-            <div id="becauseContainer" class="anime-container carousel-container">
+            <div id="hybridBestMatchContainer" class="anime-container carousel-container">
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
@@ -180,12 +199,12 @@
         </div>
     </section>
 
-    <!-- SIMILAR TO YOUR FAVORITES -->
-    <section id="similarFavoritesSection">
-        <h2 class="section-title">⭐ <span id="similarFavoritesLabel">Similar To Your Favorites</span></h2>
+    <!-- 2. ANIME YOU WILL LOVE -->
+    <section id="hybridAnimeYouLoveSection" class="hidden">
+        <h2 class="section-title">🎌 Anime You Will Love</h2>
         <div class="carousel-wrapper">
             <button class="carousel-nav-btn prev">◀</button>
-            <div id="similarFavoritesContainer" class="anime-container carousel-container">
+            <div id="hybridAnimeYouLoveContainer" class="anime-container carousel-container">
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
@@ -195,12 +214,89 @@
         </div>
     </section>
 
-    <!-- BECAUSE YOU LIKE [GENRE] -->
-    <section id="trendingGenreSection">
-        <h2 class="section-title">🎬 <span id="trendingGenreLabel">Because You Like Action</span></h2>
+    <!-- 3. USERS LIKE YOU ALSO ENJOY -->
+    <section id="hybridUsersLikeYouSection" class="hidden">
+        <h2 class="section-title">👥 Users Like You Also Enjoy</h2>
         <div class="carousel-wrapper">
             <button class="carousel-nav-btn prev">◀</button>
-            <div id="trendingGenreContainer" class="anime-container carousel-container">
+            <div id="hybridUsersLikeYouContainer" class="anime-container carousel-container">
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+            </div>
+            <button class="carousel-nav-btn next">▶</button>
+        </div>
+    </section>
+
+    <!-- 4. HIDDEN GEMS -->
+    <section id="hybridHiddenGemsSection" class="hidden">
+        <h2 class="section-title">⭐ Hidden Gems</h2>
+        <div class="carousel-wrapper">
+            <button class="carousel-nav-btn prev">◀</button>
+            <div id="hybridHiddenGemsContainer" class="anime-container carousel-container">
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+            </div>
+            <button class="carousel-nav-btn next">▶</button>
+        </div>
+    </section>
+
+    <!-- 5. TRENDING FOR YOU -->
+    <section id="hybridTrendingSection" class="hidden">
+        <h2 class="section-title">🔥 Trending For You</h2>
+        <div class="carousel-wrapper">
+            <button class="carousel-nav-btn prev">◀</button>
+            <div id="hybridTrendingContainer" class="anime-container carousel-container">
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+            </div>
+            <button class="carousel-nav-btn next">▶</button>
+        </div>
+    </section>
+
+    <!-- PHASE 7: TRENDING PREDICTION & USER BEHAVIOR FORECASTING -->
+    
+    <!-- 1. PREDICTED TRENDING -->
+    <section id="predictedTrendingSection" class="hidden">
+        <h2 class="section-title">🔥 Predicted Trending <small style="font-size:14px;opacity:0.6;">(AI Forecast)</small></h2>
+        <div class="carousel-wrapper">
+            <button class="carousel-nav-btn prev">◀</button>
+            <div id="predictedTrendingContainer" class="anime-container carousel-container">
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+            </div>
+            <button class="carousel-nav-btn next">▶</button>
+        </div>
+    </section>
+
+    <!-- 2. RECOMMENDED NEXT -->
+    <section id="recommendedNextSection" class="hidden">
+        <h2 class="section-title">🎯 Recommended Next <small style="font-size:14px;opacity:0.6;">(Behavior Prediction)</small></h2>
+        <div class="carousel-wrapper">
+            <button class="carousel-nav-btn prev">◀</button>
+            <div id="recommendedNextContainer" class="anime-container carousel-container">
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
+            </div>
+            <button class="carousel-nav-btn next">▶</button>
+        </div>
+    </section>
+
+    <!-- 3. RISING THIS WEEK -->
+    <section id="risingThisWeekSection" class="hidden">
+        <h2 class="section-title">📈 Rising This Week <small style="font-size:14px;opacity:0.6;">(Emerging Trends)</small></h2>
+        <div class="carousel-wrapper">
+            <button class="carousel-nav-btn prev">◀</button>
+            <div id="risingThisWeekContainer" class="anime-container carousel-container">
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
                 <div class="skeleton-card"><div class="skeleton-thumbnail"></div><div class="skeleton-details"><div class="skeleton-title"></div><div class="skeleton-meta"></div></div></div>
@@ -408,6 +504,8 @@
 <script type="module" src="script.js"></script>
 <script type="module" src="firebase.js"></script>
 <script type="module" src="recommendations.js"></script>
+<script type="module" src="trendPredictor.js"></script>
+<script type="module" src="smartSearch.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

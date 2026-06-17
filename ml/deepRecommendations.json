@@ -1,0 +1,185 @@
+{
+  "deepRecommendations": {
+    "user123": {
+      "recommendations": [
+        {
+          "contentId": 28851,
+          "title": "A Silent Voice",
+          "mediaType": "movie",
+          "score": 0.8647
+        },
+        {
+          "contentId": 9253,
+          "title": "Steins;Gate",
+          "mediaType": "anime",
+          "score": 0.815
+        },
+        {
+          "contentId": 32281,
+          "title": "Your Name.",
+          "mediaType": "movie",
+          "score": 0.7364
+        },
+        {
+          "contentId": 1535,
+          "title": "Death Note",
+          "mediaType": "anime",
+          "score": 0.5747
+        }
+      ]
+    },
+    "user456": {
+      "recommendations": [
+        {
+          "contentId": 9253,
+          "title": "Steins;Gate",
+          "mediaType": "anime",
+          "score": 0.9327
+        },
+        {
+          "contentId": 40748,
+          "title": "Jujutsu Kaisen",
+          "mediaType": "anime",
+          "score": 0.9248
+        },
+        {
+          "contentId": 21,
+          "title": "One Piece",
+          "mediaType": "anime",
+          "score": 0.8994
+        },
+        {
+          "contentId": 40028,
+          "title": "Attack on Titan Final Season",
+          "mediaType": "anime",
+          "score": 0.888
+        },
+        {
+          "contentId": 1535,
+          "title": "Death Note",
+          "mediaType": "anime",
+          "score": 0.8482
+        },
+        {
+          "contentId": 11061,
+          "title": "Hunter x Hunter (2011)",
+          "mediaType": "anime",
+          "score": 0.6915
+        }
+      ]
+    },
+    "user789": {
+      "recommendations": [
+        {
+          "contentId": 38000,
+          "title": "Demon Slayer",
+          "mediaType": "anime",
+          "score": 0.9354
+        },
+        {
+          "contentId": 28851,
+          "title": "A Silent Voice",
+          "mediaType": "movie",
+          "score": 0.8788
+        },
+        {
+          "contentId": 40748,
+          "title": "Jujutsu Kaisen",
+          "mediaType": "anime",
+          "score": 0.8418
+        },
+        {
+          "contentId": 40028,
+          "title": "Attack on Titan Final Season",
+          "mediaType": "anime",
+          "score": 0.8097
+        },
+        {
+          "contentId": 32281,
+          "title": "Your Name.",
+          "mediaType": "movie",
+          "score": 0.7694
+        },
+        {
+          "contentId": 21,
+          "title": "One Piece",
+          "mediaType": "anime",
+          "score": 0.6041
+        },
+        {
+          "contentId": 11061,
+          "title": "Hunter x Hunter (2011)",
+          "mediaType": "anime",
+          "score": 0.3194
+        }
+      ]
+    },
+    "COLD_START": {
+      "recommendations": [
+        {
+          "contentId": 38000,
+          "title": "Demon Slayer",
+          "mediaType": "anime",
+          "score": 0.8
+        },
+        {
+          "contentId": 21,
+          "title": "One Piece",
+          "mediaType": "anime",
+          "score": 0.8
+        },
+        {
+          "contentId": 1535,
+          "title": "Death Note",
+          "mediaType": "anime",
+          "score": 0.8
+        },
+        {
+          "contentId": 11061,
+          "title": "Hunter x Hunter (2011)",
+          "mediaType": "anime",
+          "score": 0.8
+        },
+        {
+          "contentId": 9253,
+          "title": "Steins;Gate",
+          "mediaType": "anime",
+          "score": 0.8
+        },
+        {
+          "contentId": 28851,
+          "title": "A Silent Voice",
+          "mediaType": "movie",
+          "score": 0.8
+        },
+        {
+          "contentId": 32281,
+          "title": "Your Name.",
+          "mediaType": "movie",
+          "score": 0.8
+        },
+        {
+          "contentId": 40028,
+          "title": "Attack on Titan Final Season",
+          "mediaType": "anime",
+          "score": 0.8
+        },
+        {
+          "contentId": 40748,
+          "title": "Jujutsu Kaisen",
+          "mediaType": "anime",
+          "score": 0.8
+        }
+      ]
+    }
+  },
+  "metrics": {
+    "precisionAtK": 0.93,
+    "recallAtK": 0.79,
+    "f1": 0.85,
+    "ndcg": 0.88,
+    "datasetSize": 10,
+    "trainingTime": 5.29,
+    "recommendationQuality": "Excellent"
+  }
+}

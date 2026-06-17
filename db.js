@@ -23,9 +23,22 @@ export const authReady = new Promise((resolve) => {
     authResolve = resolve;
 });
 
+// In-Memory Caches to Optimize Database Reads/Writes
+const userListCache = {}; 
+const userPrefsCache = {}; 
+const recsCache = {}; 
+
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
     isAuthInitialized = true;
+    
+    // Clear caches on logout
+    if (!user) {
+        for (const k in userListCache) delete userListCache[k];
+        for (const k in userPrefsCache) delete userPrefsCache[k];
+        for (const k in recsCache) delete recsCache[k];
+    }
+    
     authResolve(user);
     // NOTE: Do NOT redirect here. db.js is a data layer only.
     // Auth redirects are handled by firebase.js (for index.html)
@@ -105,6 +118,10 @@ export async function saveUserData(collectionName, dataArray) {
         return;
     }
 
+    // Update in-memory cache
+    if (!userListCache[user.uid]) userListCache[user.uid] = {};
+    userListCache[user.uid][collectionName] = dataArray;
+
     console.log(`[saveUserData] Writing "${collectionName}" for uid=${user.uid}. Items: ${dataArray.length}`);
     console.log(`[saveUserData] Payload:`, dataArray);
 
@@ -153,6 +170,12 @@ export async function getUserData(collectionName) {
         return null;
     }
 
+    // Check in-memory cache first
+    if (userListCache[user.uid] && userListCache[user.uid][collectionName]) {
+        console.log(`[getUserData] memory cache hit: /users/${user.uid}.${collectionName}`);
+        return userListCache[user.uid][collectionName];
+    }
+
     console.log(`[getUserData] Reading "${collectionName}" for uid=${user.uid}`);
 
     // PRIMARY: read field from /users/{uid}
@@ -165,6 +188,9 @@ export async function getUserData(collectionName) {
                 const val = dataObj[collectionName];
                 if (Array.isArray(val)) {
                     console.log(`[getUserData] ✅ PRIMARY read success: /users/${user.uid}.${collectionName}. Count: ${val.length}`);
+                    // Save to memory cache
+                    if (!userListCache[user.uid]) userListCache[user.uid] = {};
+                    userListCache[user.uid][collectionName] = val;
                     return val;
                 }
             }
@@ -186,6 +212,9 @@ export async function getUserData(collectionName) {
                 const val = dataObj.items;
                 if (Array.isArray(val)) {
                     console.log(`[getUserData] ✅ BACKUP read success: /${collectionName}/${user.uid}. Count: ${val.length}`);
+                    // Save to memory cache
+                    if (!userListCache[user.uid]) userListCache[user.uid] = {};
+                    userListCache[user.uid][collectionName] = val;
                     return val;
                 }
             }
@@ -239,11 +268,46 @@ export async function fetchDbToStorage(key) {
     });
 }
 
+// Log saves, clicks, and watch rates in recommendationMetrics daily logs
+export async function logRecommendationMetric(metricType, count = 1) {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const docRef = doc(db, "recommendationMetrics", today);
+        
+        const snap = await awaitWithTimeout(getDoc(docRef), 1500);
+        let data = (snap && snap.exists()) ? snap.data() : { clicks: 0, saves: 0, watches: 0, impressions: 0 };
+        
+        data[metricType] = (data[metricType] || 0) + count;
+        
+        const clicks = data.clicks || 0;
+        const saves = data.saves || 0;
+        const watches = data.watches || 0;
+        data.accuracyScore = clicks > 0 ? Math.round(((saves + watches) / clicks) * 100) : 0;
+        
+        const { writeBatch } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const batch = writeBatch(db);
+        batch.set(docRef, data, { merge: true });
+        await awaitWithTimeout(batch.commit(), 1500);
+        console.log(`[logRecommendationMetric] Metric "${metricType}" logged.`, data);
+    } catch (e) {
+        console.warn("logRecommendationMetric error:", e);
+    }
+}
+
 // User Preference Tracking & Activity analytics
 export async function trackUserActivity(item, actionType) {
     try {
         const user = await getActiveUser();
         if (!user || !item) return;
+
+        // Track Recommendation Saves and Watch Rates
+        if (item.fromRecommendation) {
+            if (actionType === 'watch' || actionType === 'watched') {
+                await logRecommendationMetric('watch');
+            } else if (actionType === 'favorite' || actionType === 'mylist') {
+                await logRecommendationMetric('save');
+            }
+        }
 
         // 1. Determine content type (Anime, Movie, TV)
         let type = 'TV';
@@ -424,6 +488,9 @@ export async function analyzeUserPreferences() {
         const prefRef = doc(db, "userPreferences", user.uid);
         await setDoc(prefRef, userPreferences, { merge: true });
 
+        // Cache in-memory
+        userPrefsCache[user.uid] = userPreferences;
+
         return userPreferences;
     } catch (e) {
         console.error("analyzeUserPreferences error:", e);
@@ -436,9 +503,18 @@ export async function getPreferences() {
     try {
         const user = await getActiveUser();
         if (!user) return { genres: {}, animeGenres: {}, movieGenres: {}, tvGenres: {}, types: {}, watchingTimes: {} };
+        
+        // Check cache
+        if (userPrefsCache[user.uid]) {
+            console.log(`[getPreferences] memory cache hit for user ${user.uid}`);
+            return userPrefsCache[user.uid];
+        }
+
         const prefRef = doc(db, "userPreferences", user.uid);
         const snap = await awaitWithTimeout(getDoc(prefRef), 1500);
-        return (snap && snap.exists()) ? snap.data() : { genres: {}, animeGenres: {}, movieGenres: {}, tvGenres: {}, types: {}, watchingTimes: {} };
+        const data = (snap && snap.exists()) ? snap.data() : { genres: {}, animeGenres: {}, movieGenres: {}, tvGenres: {}, types: {}, watchingTimes: {} };
+        userPrefsCache[user.uid] = data;
+        return data;
     } catch (e) {
         console.warn("getPreferences error:", e);
         return { genres: {}, animeGenres: {}, movieGenres: {}, tvGenres: {}, types: {}, watchingTimes: {} };
@@ -496,11 +572,15 @@ export async function saveRecommendations(recs) {
     try {
         const user = await getActiveUser();
         if (!user) return;
-        const recsRef = doc(db, "recommendations", user.uid);
-        await awaitWithTimeout(setDoc(recsRef, {
+
+        // Cache in memory
+        recsCache[user.uid] = {
             ...recs,
             generatedAt: new Date().toISOString()
-        }, { merge: true }), 1500);
+        };
+
+        const recsRef = doc(db, "recommendations", user.uid);
+        await awaitWithTimeout(setDoc(recsRef, recsCache[user.uid], { merge: true }), 1500);
     } catch (e) {
         console.warn("saveRecommendations error:", e);
     }
@@ -510,9 +590,21 @@ export async function fetchCachedRecommendations() {
     try {
         const user = await getActiveUser();
         if (!user) return null;
+
+        // Check cache
+        if (recsCache[user.uid]) {
+            console.log(`[fetchCachedRecommendations] memory cache hit for user ${user.uid}`);
+            return recsCache[user.uid];
+        }
+
         const recsRef = doc(db, "recommendations", user.uid);
         const snap = await awaitWithTimeout(getDoc(recsRef), 1500);
-        return (snap && snap.exists()) ? snap.data() : null;
+        if (snap && snap.exists()) {
+            const data = snap.data();
+            recsCache[user.uid] = data;
+            return data;
+        }
+        return null;
     } catch (e) {
         console.warn("fetchCachedRecommendations error:", e);
         return null;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'animeverse-precache-v2';
+const CACHE_NAME = 'animeverse-precache-v4';
 const RUNTIME_CACHE = 'animeverse-runtime-cache-v1';
 
 const PRECACHE_URLS = [
@@ -27,7 +27,9 @@ const PRECACHE_URLS = [
   './recommendations.js',
   './offline.html',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './login-bg.jpg',
+  './ai.js'
 ];
 
 self.addEventListener('install', event => {

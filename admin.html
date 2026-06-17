@@ -57,6 +57,10 @@
         <button class="admin-tab" data-tab="users">👥 User Activity</button>
         <button class="admin-tab" data-tab="recommendations">🎯 Recommendation Insights</button>
         <button class="admin-tab" data-tab="ml">🤖 ML Preparation</button>
+        <button class="admin-tab" data-tab="collaborative">👥 Collaborative Sync</button>
+        <button class="admin-tab" data-tab="hybrid">🧬 Hybrid Sync</button>
+        <button class="admin-tab" data-tab="deepLearning">🧠 Deep Learning Sync</button>
+        <button class="admin-tab" data-tab="chatAnalytics">💬 Chat Analytics</button>
     </div>
 
     <!-- TAB 1: PLATFORM OVERVIEW -->
@@ -169,7 +173,7 @@
         <!-- SEARCH ANALYTICS SECTION -->
         <div class="admin-panel" style="margin-top: 20px;">
             <div class="admin-panel-title">🔍 Search Analytics (Platform-wide)</div>
-            <div class="admin-grid-2col">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
                 <div>
                     <h4>Most Searched Titles</h4>
                     <ul id="mostSearchedList" style="list-style: none; padding: 0; color: #ccc;">
@@ -177,10 +181,43 @@
                     </ul>
                 </div>
                 <div>
+                    <h4>Search Click-Through Rate (CTR)</h4>
+                    <ul id="searchCtrList" style="list-style: none; padding: 0; color: #a3e635;">
+                        <li>Aggregating CTR...</li>
+                    </ul>
+                </div>
+                <div>
                     <h4>Failed Searches (No results)</h4>
                     <ul id="failedSearchesList" style="list-style: none; padding: 0; color: #ff6b6b;">
                         <li>Aggregating searches...</li>
                     </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- FUTURE TRENDS & BEHAVIOR FORECASTS -->
+        <div class="admin-panel" style="margin-top: 20px;">
+            <div class="admin-panel-title">🔮 Future Trend & Behavior Forecasts</div>
+            <div class="admin-grid-3col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <h4>📈 Genre Growth Rate (Forecasted)</h4>
+                    <ul id="genreGrowthList" style="list-style: none; padding: 0; color: #ccc; line-height: 1.8;">
+                        <li>Calculating growth rates...</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>🎬 Content Type Growth (Forecasted)</h4>
+                    <ul id="contentTypeGrowthList" style="list-style: none; padding: 0; color: #ccc; line-height: 1.8;">
+                        <li>Calculating growth rates...</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>👥 User Activity Forecast (Next 30 Days)</h4>
+                    <p style="color: var(--text-muted); font-size: 13px; line-height: 1.8;">
+                        Expected Daily Active Users: <strong id="forecastDAU" style="color: white;">—</strong><br>
+                        Expected Weekly Active Users: <strong id="forecastWAU" style="color: white;">—</strong><br>
+                        Expected Monthly Active Users: <strong id="forecastMAU" style="color: white;">—</strong>
+                    </p>
                 </div>
             </div>
         </div>
@@ -223,6 +260,24 @@
                 <h4>Favorites Growth Over Time</h4>
                 <div class="chart-container">
                     <canvas id="favoritesGrowthChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>🔮 Trend Forecast (Top Titles)</h4>
+                <div class="chart-container">
+                    <canvas id="trendForecastChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>🔮 Genre Forecast</h4>
+                <div class="chart-container">
+                    <canvas id="genreForecastChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4>🔮 User Growth Prediction</h4>
+                <div class="chart-container">
+                    <canvas id="userGrowthForecastChart"></canvas>
                 </div>
             </div>
         </div>
@@ -372,6 +427,178 @@
                         <h3 id="mlPopularType" style="font-size:22px; text-transform:capitalize;">—</h3>
                         <p>Most Popular Type</p>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 7: COLLABORATIVE FILTERING -->
+    <div id="collaborativeSection" class="admin-section" style="margin-top: 20px;">
+        <div class="admin-flex-row">
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">👥 Collaborative Filtering Sync</div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    Upload the pre-computed `collaborative_data.json` from the Python offline pipeline directly into Firestore (`similarUsers` and `communityRecommendations`).
+                </p>
+                <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                    <button id="btnSyncCollaborative" class="btn-primary" style="flex:1;">🔄 Sync Collaborative Data to Firestore</button>
+                </div>
+                <div id="collabSyncStatus" style="padding: 15px; border-radius: 8px; background: rgba(0,0,0,0.2); font-family: monospace; font-size: 13px; color: var(--text-muted); height: 100px; overflow-y: auto;">
+                    Awaiting sync...
+                </div>
+            </div>
+            
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">📈 Collaborative ML Metrics</div>
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🎯</div>
+                        <h3 id="collabPrecision">0.0</h3>
+                        <p>Precision@K</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🔄</div>
+                        <h3 id="collabRecall">0.0</h3>
+                        <p>Recall@K</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🌈</div>
+                        <h3 id="collabDiversity">0.0</h3>
+                        <p>Diversity</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🌐</div>
+                        <h3 id="collabCoverage">0.0</h3>
+                        <p>Coverage</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 8: HYBRID FILTERING -->
+    <div id="hybridSection" class="admin-section" style="margin-top: 20px;">
+        <div class="admin-flex-row">
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">🧬 Hybrid Recommendation Sync</div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    Upload the pre-computed `hybrid_data.json` from the Python offline pipeline directly into Firestore (`hybridRecommendations`).
+                </p>
+                <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                    <button id="btnSyncHybrid" class="btn-primary" style="flex:1;">🔄 Sync Hybrid Data to Firestore</button>
+                </div>
+                <div id="hybridSyncStatus" style="padding: 15px; border-radius: 8px; background: rgba(0,0,0,0.2); font-family: monospace; font-size: 13px; color: var(--text-muted); height: 100px; overflow-y: auto;">
+                    Awaiting sync...
+                </div>
+            </div>
+            
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">📈 Hybrid ML Metrics</div>
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🎯</div>
+                        <h3 id="hybridPrecision">0.0</h3>
+                        <p>Precision</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🔄</div>
+                        <h3 id="hybridRecall">0.0</h3>
+                        <p>Recall</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">👆</div>
+                        <h3 id="hybridCTR">0.0</h3>
+                        <p>Real-Time CTR</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">✅</div>
+                        <h3 id="hybridAccuracy">0.0</h3>
+                        <p>Accuracy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 10: DEEP LEARNING RECOMMENDATIONS SYNC -->
+    <div id="deepLearningSection" class="admin-section" style="margin-top: 20px;">
+        <div class="admin-flex-row">
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">🧠 Deep Learning Recommendations Sync</div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    Upload the pre-computed `deepRecommendations.json` from the TensorFlow/Keras neural collaborative filtering model direct into Firestore (`deepRecommendations`).
+                </p>
+                <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                    <button id="btnSyncDeepLearning" class="btn-primary" style="flex:1;">🔄 Sync Deep Learning Recs to Firestore</button>
+                </div>
+                <div id="deepLearningSyncStatus" style="padding: 15px; border-radius: 8px; background: rgba(0,0,0,0.2); font-family: monospace; font-size: 13px; color: var(--text-muted); height: 100px; overflow-y: auto;">
+                    Awaiting sync...
+                </div>
+            </div>
+            
+            <div class="admin-panel" style="flex: 1;">
+                <div class="admin-panel-title">📈 Deep Learning Neural Model Metrics</div>
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🎯</div>
+                        <h3 id="deepPrecision">0.0</h3>
+                        <p>Precision@K</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">🔄</div>
+                        <h3 id="deepRecall">0.0</h3>
+                        <p>Recall@K</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">📊</div>
+                        <h3 id="deepF1">0.0</h3>
+                        <p>F1-Score</p>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon">📈</div>
+                        <h3 id="deepNdcg">0.0</h3>
+                        <p>NDCG</p>
+                    </div>
+                </div>
+                <!-- Model Info details -->
+                <div style="margin-top: 20px; font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+                    • <strong>Architecture:</strong> Neural Collaborative Filtering (NCF) with User/Item Embeddings<br>
+                    • <strong>Dataset Size:</strong> <span id="deepDatasetSize">—</span> records<br>
+                    • <strong>Training Time:</strong> <span id="deepTrainingTime">—</span> seconds<br>
+                    • <strong>Recommendation Quality:</strong> <span id="deepQuality">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 9: AI CHAT ANALYTICS -->
+    <div id="chatAnalyticsSection" class="admin-section" style="margin-top: 20px;">
+        <div class="admin-panel">
+            <div class="admin-panel-title">💬 AI Chat Recommendation Assistant Analytics</div>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                Real-time NLP intent and engagement tracking for the AnimeVerse AI Chat.
+            </p>
+            
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon">💭</div>
+                    <h3 id="chatTotalQueries">0</h3>
+                    <p>Total Queries</p>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon">👆</div>
+                    <h3 id="chatTotalClicks">0</h3>
+                    <p>Total Card Clicks</p>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon">🎭</div>
+                    <h3 id="chatTopGenre">N/A</h3>
+                    <p>Top Genre Requested</p>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon">⭐</div>
+                    <h3 id="chatTopIntent">N/A</h3>
+                    <p>Top Intent Triggered</p>
                 </div>
             </div>
         </div>

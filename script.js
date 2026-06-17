@@ -1,6 +1,8 @@
-import { syncStorageToDb, fetchDbToStorage, getPreferences, awaitWithTimeout, db } from './db.js';
+import { syncStorageToDb, fetchDbToStorage, getPreferences, awaitWithTimeout, getActiveUser, db } from './db.js';
 import { collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { analytics } from './analytics.js';
+import { processAiQuery, saveToHistory, trackAnalytics } from './ai.js';
+import { triggerSmartSuggestions } from './smartSearch.js';
 
 const _hiddenContentSet = new Set();
 
@@ -405,7 +407,8 @@ if (search) {
         if (query.length === 0) {
             renderRecentSearches();
         } else {
-            triggerSearch(query);
+            const results = document.getElementById("searchResults");
+            triggerSmartSuggestions(query, results);
         }
     });
 }
@@ -438,7 +441,7 @@ function renderRecentSearches() {
         `;
         div.addEventListener("click", () => {
             search.value = term;
-            triggerSearch(term);
+            triggerSmartSuggestions(term, results);
         });
         results.appendChild(div);
     });
@@ -931,7 +934,7 @@ async function loadContinueWatching() {
 }
 
 // ======================
-// CHATBOT (Context-Aware)
+// CHATBOT (Context-Aware / Unified AnimeVerse AI)
 // ======================
 
 const chatToggle = document.getElementById("chatToggle");
@@ -939,24 +942,64 @@ const chatbot    = document.getElementById("chatbot");
 const closeChat  = document.getElementById("closeChat");
 const chatOverlay= document.getElementById("chatOverlay");
 
+let popupSessionId = Date.now().toString();
+let popupContext = { lastGenre: null, lastTitle: null, modifier: null };
+
 function toggleChat() {
     chatbot.classList.toggle("hidden");
     if (chatOverlay) chatOverlay.classList.toggle("hidden");
 }
 
-chatToggle.addEventListener("click", toggleChat);
-closeChat.addEventListener("click", toggleChat);
+if (chatToggle) chatToggle.addEventListener("click", toggleChat);
+if (closeChat) closeChat.addEventListener("click", toggleChat);
 if (chatOverlay) chatOverlay.addEventListener("click", toggleChat);
 
 const chatInput = document.getElementById("chatInput");
 const chatBtn   = document.getElementById("chatBtn");
 const chatBox   = document.getElementById("chatBox");
 
-function appendMessage(text, sender, isHtml = false) {
+function appendMessage(text, sender, cards = null) {
     const msg = document.createElement("div");
     msg.classList.add("message", sender === "user" ? "user-message" : "ai-message");
-    if (isHtml) msg.innerHTML = text;
-    else msg.innerText = text;
+
+    let cardsHtml = '';
+    if (cards && cards.length > 0) {
+        cardsHtml = `<div class="chat-cards-container" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px; margin-top:10px;">`;
+        cards.forEach(card => {
+            const imgUrl = card.image || `https://via.placeholder.com/120x180/1a1a1a/e50914?text=${encodeURIComponent(card.title)}`;
+            const title = card.title;
+            const rating = card.rating || 'N/A';
+            const itemId = card.id;
+            const mediaType = card.mediaType || 'movie';
+
+            cardsHtml += `
+                <div class="chat-card" style="background:#141414; border:1px solid #222; border-radius:6px; width:110px; overflow:hidden; cursor:pointer; flex-shrink:0;" onclick="handleCardClick('${title.replace(/'/g, "\\'")}', '${itemId}', '${mediaType}', '${imgUrl}')">
+                    <img src="${imgUrl}" alt="${title}" style="width:100%; height:140px; object-fit:cover; display:block;">
+                    <div style="padding:6px;">
+                        <h4 style="font-size:11px; font-weight:600; margin:0 0 3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</h4>
+                        <div style="font-size:9px; color:#aaa; display:flex; justify-content:space-between;">
+                            <span>⭐ ${rating}</span>
+                            <span>${mediaType.toUpperCase()}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        cardsHtml += `</div>`;
+    }
+
+    // Convert markdown bold and newlines to HTML format
+    const formattedText = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
+    msg.innerHTML = `
+        <div>
+            <div>${formattedText}</div>
+            ${cardsHtml}
+        </div>
+    `;
+
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -975,279 +1018,57 @@ function removeTypingIndicator() {
     if (el) el.remove();
 }
 
-window.viewChatbotDetails = async function(title, image, rating, description, id, type) {
-    // Log recommendation click
-    try {
-        const docRef = doc(db, "analytics", "recommendations");
-        const docSnap = await getDoc(docRef);
-        const data = docSnap.exists() ? docSnap.data() : { impressions: 0, clicks: 0, recommendedCount: {}, clickedCount: {} };
-        data.clicks = (data.clicks || 0) + 1;
-        const recKey = (title || "").replace(/ /g, "_");
-        if (!data.clickedCount) data.clickedCount = {};
-        data.clickedCount[recKey] = (data.clickedCount[recKey] || 0) + 1;
-        await setDoc(docRef, data, { merge: true });
-    } catch (err) {
-        console.warn("Analytics log error:", err);
-    }
+async function handleChatSubmit() {
+    const query = chatInput.value.trim();
+    if (!query) return;
 
-    const selectedItem = { title, image, rating, description, id: id || null, type: type || '', mediaType: type || '', mal_id: null };
+    chatInput.value = "";
+    appendMessage(query, "user");
+    appendTypingIndicator();
+
+    const currentUser = await getActiveUser();
+
+    // Process intent and generate unified response
+    const response = await processAiQuery(query, currentUser, popupContext);
+
+    removeTypingIndicator();
+    appendMessage(response.text, "ai", response.cards);
+
+    // Save to Firestore
+    await saveToHistory(currentUser, popupSessionId, query, response.text);
+}
+
+if (chatBtn) chatBtn.addEventListener("click", handleChatSubmit);
+if (chatInput) {
+    chatInput.addEventListener("keyup", e => { if (e.key === "Enter") handleChatSubmit(); });
+}
+
+window.handleCardClick = function(title, itemId, mediaType, imgUrl) {
+    const isAnime = mediaType.toLowerCase() === 'anime';
+    const selectedItem = {
+        title: title,
+        image: imgUrl,
+        rating: null,
+        description: "",
+        type: isAnime ? 'Anime' : mediaType,
+        mediaType: isAnime ? 'Anime' : mediaType,
+        year: "",
+        episodes: null,
+        id: isAnime ? null : itemId,
+        mal_id: isAnime ? itemId : null
+    };
     localStorage.setItem("selectedItem", JSON.stringify(selectedItem));
+
+    // Add to watch history
     let watchHistory = JSON.parse(localStorage.getItem("watchHistory")) || [];
     watchHistory = watchHistory.filter(h => h && (h.title || '').toLowerCase().trim() !== title.toLowerCase().trim());
     watchHistory.unshift(selectedItem);
-    await awaitWithTimeout(syncStorageToDb("watchHistory", watchHistory), 150);
+    localStorage.setItem("watchHistory", JSON.stringify(watchHistory.slice(0, 20)));
+
+    trackAnalytics("click", title);
+
     window.location.href = "details.html";
 };
-
-async function processQuery(query) {
-    const esc = (val) => JSON.stringify(val).replace(/'/g, "&#39;");
-    appendMessage(query, "user");
-    const q = query.toLowerCase().trim();
-
-    // 1. GREETINGS
-    if (/^(hi|hello|hey|yo)$/.test(q)) {
-        setTimeout(() => appendMessage("Hi! I'm your AnimeVerse AI Assistant. Ask me about any show, request a recommendation, or check what is in your watch lists (history, favorites, watched list, or My List)!", "ai"), 400);
-        return;
-    }
-    if (q.includes("how are you")) {
-        setTimeout(() => appendMessage("I'm doing awesome! Ready to analyze your watch habits and recommend your next favorite show. What are you in the mood for?", "ai"), 400);
-        return;
-    }
-
-    // Retrieve user collections
-    const watchHistory = JSON.parse(localStorage.getItem("watchHistory")) || [];
-    const favorites    = JSON.parse(localStorage.getItem("favorites"))    || [];
-    const watched      = JSON.parse(localStorage.getItem("watched"))      || [];
-    const myList       = JSON.parse(localStorage.getItem("myList"))       || [];
-
-    // 2. CHECK HISTORY QUERY
-    if (q.includes("history") || q.includes("watch history") || q.includes("what did i watch") || q.includes("what have i watched")) {
-        if (watchHistory.length === 0) {
-            appendMessage("Your watch history is currently empty. Start watching some titles to populate it! 🎬", "ai");
-        } else {
-            const titles = watchHistory.slice(0, 5).map(item => `• ${item.title || item.name}`).join("<br>");
-            appendMessage(`Here are your most recently watched titles:<br>${titles}`, "ai", true);
-        }
-        return;
-    }
-
-    // 3. CHECK FAVORITES QUERY
-    if (q.includes("favorite") || q.includes("favorites") || q.includes("my favorite")) {
-        if (favorites.length === 0) {
-            appendMessage("You haven't added any titles to your Favorites list yet. ❤️", "ai");
-        } else {
-            const titles = favorites.slice(0, 5).map(item => `• ${item.title || item.name}`).join("<br>");
-            appendMessage(`Here are your favorite titles:<br>${titles}`, "ai", true);
-        }
-        return;
-    }
-
-    // 4. CHECK WATCHED QUERY
-    if (q.includes("watched list") || q.includes("watched") || q.includes("what i marked watched")) {
-        if (watched.length === 0) {
-            appendMessage("You haven't marked any titles as watched yet. ✅", "ai");
-        } else {
-            const titles = watched.slice(0, 5).map(item => `• ${item.title || item.name}`).join("<br>");
-            appendMessage(`Here are the titles you marked as watched:<br>${titles}`, "ai", true);
-        }
-        return;
-    }
-
-    // 5. CHECK MY LIST QUERY
-    if (q.includes("my list") || q.includes("mylist") || q.includes("watchlist") || q.includes("my watchlist")) {
-        if (myList.length === 0) {
-            appendMessage("Your list is currently empty. Click the 'My List' button on details pages to save titles for later! ➕", "ai");
-        } else {
-            const titles = myList.slice(0, 5).map(item => `• ${item.title || item.name}`).join("<br>");
-            appendMessage(`Here are the titles on your My List:<br>${titles}`, "ai", true);
-        }
-        return;
-    }
-
-    // 6. RECOMMENDATION OR SUGGESTION QUERY
-    if (q.includes("recommend") || q.includes("suggest") || q.includes("what should i watch") || q.includes("next show") || q.includes("next movie")) {
-        appendTypingIndicator();
-        
-        // Load preferences from Firestore
-        const prefs = await getPreferences();
-        
-        // Analyze genres dynamically from all 4 lists
-        const genresTally = {};
-        [...watchHistory, ...favorites, ...watched, ...myList].forEach(item => {
-            if (item && item.genres) {
-                const itemGenres = Array.isArray(item.genres) ? item.genres : (typeof item.genres === 'string' ? item.genres.split(',') : []);
-                itemGenres.forEach(g => {
-                    const name = typeof g === 'object' ? (g.name || '') : g;
-                    const cleaned = name.trim();
-                    if (cleaned) genresTally[cleaned] = (genresTally[cleaned] || 0) + 1;
-                });
-            }
-        });
-        
-        let favoriteGenres = Object.entries(genresTally).sort((a,b) => b[1]-a[1]).slice(0,2).map(e=>e[0]);
-        if (favoriteGenres.length === 0) {
-            favoriteGenres = Object.entries(prefs.genres || {}).sort((a,b) => b[1]-a[1]).slice(0,2).map(e=>e[0]);
-        }
-        if (favoriteGenres.length === 0) {
-            favoriteGenres = ["Action", "Drama"]; // defaults
-        }
-
-        const watchedTitlesSet = new Set(
-            [...watchHistory, ...watched, ...favorites, ...myList]
-                .map(i => (i.title || '').toLowerCase().trim())
-        );
-
-        let recommendTitle = "";
-        let recommendOverview = "";
-        let recommendImage = "";
-        let recommendRating = "";
-        let recommendId = "";
-        let recommendMediaType = "tv";
-
-        const hasActionShonen = Array.from(watchedTitlesSet).some(t => 
-            t.includes("attack on titan") || 
-            t.includes("jujutsu kaisen") || 
-            t.includes("demon slayer") ||
-            t.includes("naruto") ||
-            t.includes("bleach")
-        );
-
-        if (hasActionShonen) {
-            // Recommend Chainsaw Man, Hell's Paradise, or Solo Leveling
-            const suggestions = [
-                { title: "Solo Leveling", id: 216090, type: "tv", overview: "In a world where hunters must battle deadly monsters to protect mankind, Sung Jinwoo, the weakest hunter of all mankind, finds himself in a struggle for survival.", rating: "8.7", poster_path: "/g8aH6OI45BcHbnp0gTmL2AIe95N.jpg" },
-                { title: "Chainsaw Man", id: 114410, type: "tv", overview: "Denji has a simple dream—to live a happy and peaceful life, spending time with a girl he likes. This is a far cry from reality, however, as Denji is forced by the yakuza into killing devils.", rating: "8.6", poster_path: "/npdB6e5ufCCIafl4KM0J48m2chb.jpg" },
-                { title: "Hell's Paradise", id: 210855, type: "tv", overview: "Gabimaru the Hollow, a ninja of Iwagakure Village known for being cold and emotionless, was set up by his fellow ninja and is now on death row.", rating: "8.5", poster_path: "/4PzC944c680Jc21Xz01V0c4rU4f.jpg" }
-            ];
-            const isSuggHidden = s => _hiddenContentSet.has(s.title.toLowerCase().trim()) || _hiddenContentSet.has(`tmdb_${s.id}`) || _hiddenContentSet.has(`anime_${s.id}`);
-            const pick = suggestions.find(s => !watchedTitlesSet.has(s.title.toLowerCase().trim()) && !isSuggHidden(s)) || suggestions.find(s => !isSuggHidden(s)) || suggestions[0];
-            recommendTitle = pick.title;
-            recommendId = pick.id;
-            recommendMediaType = pick.type;
-            recommendOverview = pick.overview;
-            recommendRating = pick.rating;
-            recommendImage = IMG + pick.poster_path;
-        }
-
-        // Fallback 1: Recommend using TMDB similarity from watchHistory[0]
-        if (!recommendTitle && watchHistory.length > 0) {
-            try {
-                const seedTitle = watchHistory[0].title;
-                const search = await fetch(`${TMDB_API}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(seedTitle)}`).then(r => r.json());
-                const seed = (search.results || []).find(r => r.poster_path);
-                if (seed) {
-                    const type = seed.media_type === 'tv' || seed.first_air_date ? 'tv' : 'movie';
-                    const recs = await fetch(`${TMDB_API}/${type}/${seed.id}/recommendations?api_key=${API_KEY}`).then(r => r.json());
-                    const items = recs.results || [];
-                    const isItemHidden = item => _hiddenContentSet.has((item.title || item.name || '').toLowerCase().trim()) || _hiddenContentSet.has(`tmdb_${item.id}`) || _hiddenContentSet.has(`anime_${item.id}`);
-                    const pick = items.find(item => item.poster_path && !watchedTitlesSet.has((item.title || item.name || '').toLowerCase().trim()) && !isItemHidden(item));
-                    if (pick) {
-                        recommendTitle = pick.title || pick.name;
-                        recommendId = pick.id;
-                        recommendMediaType = type;
-                        recommendOverview = pick.overview || "";
-                        recommendRating = pick.vote_average ? pick.vote_average.toFixed(1) : "N/A";
-                        recommendImage = IMG + pick.poster_path;
-                    }
-                }
-            } catch (err) {
-                console.error("Fetch recommendations error:", err);
-            }
-        }
-
-        // Fallback 2: Recommend matching their top genre
-        if (!recommendTitle) {
-            try {
-                const genreQuery = favoriteGenres[0] || "action anime";
-                const res = await fetch(`${TMDB_API}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(genreQuery)}`);
-                const data = await res.json();
-                if (data.results && data.results.length > 0) {
-                    const isResultHidden = r => _hiddenContentSet.has((r.title || r.name || '').toLowerCase().trim()) || _hiddenContentSet.has(`tmdb_${r.id}`) || _hiddenContentSet.has(`anime_${r.id}`);
-                    const pick = data.results.find(r => r.poster_path && !watchedTitlesSet.has((r.title || r.name || '').toLowerCase().trim()) && !isResultHidden(r)) || data.results.find(r => !isResultHidden(r)) || data.results[0];
-                    recommendTitle = pick.title || pick.name;
-                    recommendId = pick.id;
-                    recommendMediaType = pick.media_type || "tv";
-                    recommendOverview = pick.overview || "";
-                    recommendRating = pick.vote_average ? pick.vote_average.toFixed(1) : "N/A";
-                    recommendImage = pick.poster_path ? IMG + pick.poster_path : "";
-                }
-            } catch (err) {
-                console.error("Fetch trending error:", err);
-            }
-        }
-
-        removeTypingIndicator();
-
-        if (recommendTitle) {
-            // Log recommendation impression
-            try {
-                const docRef = doc(db, "analytics", "recommendations");
-                const docSnap = await getDoc(docRef);
-                const data = docSnap.exists() ? docSnap.data() : { impressions: 0, clicks: 0, recommendedCount: {}, clickedCount: {} };
-                data.impressions = (data.impressions || 0) + 1;
-                const recKey = recommendTitle.replace(/ /g, "_");
-                if (!data.recommendedCount) data.recommendedCount = {};
-                data.recommendedCount[recKey] = (data.recommendedCount[recKey] || 0) + 1;
-                await setDoc(docRef, data, { merge: true });
-            } catch (err) {
-                console.warn("Analytics log error:", err);
-            }
-
-            const formattedGenres = favoriteGenres.join(" and ");
-            let html = `<p style="margin-bottom:8px">You seem to enjoy <strong>${formattedGenres}</strong> anime. Based on your watch history I recommend <strong>${recommendTitle}</strong>.</p>`;
-            if (recommendImage) html += `<img src="${recommendImage}" loading="lazy" style="width:100%;border-radius:8px;margin-bottom:8px;" />`;
-            html += `<p style="font-size:13px;margin-bottom:4px">⭐ ${recommendRating}</p>`;
-            html += `<p style="font-size:12px;line-height:1.5;opacity:0.9;margin-bottom:10px">${recommendOverview}</p>`;
-            html += `<button class="btn-primary" style="padding:8px;font-size:13px;width:100%;border:none;cursor:pointer;border-radius:20px;" onclick='viewChatbotDetails(${esc(recommendTitle)},${esc(recommendImage)},${esc(recommendRating)},${esc(recommendOverview)},${esc(recommendId)},${esc(recommendMediaType)})'>▶ Watch Now</button>`;
-            appendMessage(html, "ai", true);
-        } else {
-            appendMessage("I couldn't generate a personalized recommendation right now. Try watching or favoriting more shows first!", "ai");
-        }
-        return;
-    }
-
-    // 7. GENERAL SEARCH
-    appendTypingIndicator();
-    let searchTerm = query.replace(/^(tell me about|what is|search for|find|do you know about|info on|information about|who is)\s+/i, "").trim() || query;
-
-    try {
-        const res  = await fetch(`${TMDB_API}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(searchTerm)}`);
-        const data = await res.json();
-        removeTypingIndicator();
-
-        if (data.results && data.results.length > 0) {
-            analytics.trackSearch(query, true);
-            const items = data.results.filter(item => item.poster_path && item.media_type !== "person" && !isContentHidden(item.title || item.name || ''));
-            const item = items[0] || data.results.find(r => r.poster_path) || data.results[0];
-            const title   = item.title || item.name;
-            const rating  = item.vote_average ? item.vote_average.toFixed(1) : "N/A";
-            const overview= item.overview || "No synopsis available.";
-            const image   = item.poster_path ? IMG + item.poster_path : "";
-
-            let html = `<p style="margin-bottom:8px">I found <strong>${title}</strong>!</p>`;
-            if (image) html += `<img src="${image}" loading="lazy" style="width:100%;border-radius:8px;margin-bottom:8px;" />`;
-            html += `<p style="font-size:13px;margin-bottom:4px">⭐ ${rating} &nbsp; <span style="font-size:11px;background:rgba(229,9,20,0.8);border-radius:4px;padding:2px 6px;">${(item.media_type||'').toUpperCase()}</span></p>`;
-            html += `<p style="font-size:12px;line-height:1.5;opacity:0.9;margin-bottom:10px">${overview}</p>`;
-            html += `<button class="btn-primary" style="padding:8px;font-size:13px;width:100%;border:none;cursor:pointer;border-radius:20px;" onclick='viewChatbotDetails(${esc(title)},${esc(image)},${esc(rating)},${esc(overview)},${esc(item.id)},${esc(item.media_type||"")})'>▶ Watch Now</button>`;
-            appendMessage(html, "ai", true);
-        } else {
-            appendMessage(`I couldn't find anything for "${searchTerm}". Check the spelling?`, "ai");
-        }
-    } catch (err) {
-        removeTypingIndicator();
-        appendMessage("Connection error. Please try again!", "ai");
-    }
-}
-
-function handleChatSubmit() {
-    const val = chatInput.value.trim();
-    if (!val) return;
-    chatInput.value = "";
-    processQuery(val);
-}
-
-chatBtn.addEventListener("click", handleChatSubmit);
-chatInput.addEventListener("keyup", e => { if (e.key === "Enter") handleChatSubmit(); });
 
 
 // ======================

@@ -1,0 +1,11 @@
+uid,contentId,title,genres,mediaType,rating,favorite,watched,myList,views,timestamp
+user123,40028,Attack on Titan Final Season,Action;Drama;Fantasy;Military;Mystery;Shounen;Super Power,anime,9.0,true,true,false,3,2023-10-01T10:00:00Z
+user123,40748,Jujutsu Kaisen,Action;Demons;Fantasy;School;Shounen;Supernatural,anime,8.7,true,true,false,2,2023-10-02T10:00:00Z
+user123,38000,Demon Slayer,Action;Demons;Historical;Shounen;Supernatural,anime,8.6,true,true,true,5,2023-10-03T10:00:00Z
+user123,21,One Piece,Action;Adventure;Comedy;Drama;Fantasy;Shounen;Super Power,anime,8.6,false,true,false,1,2023-10-04T10:00:00Z
+user123,11061,Hunter x Hunter (2011),Action;Adventure;Fantasy;Shounen;Super Power,anime,9.0,false,false,true,1,2023-10-05T10:00:00Z
+user456,32281,Your Name.,Drama;Romance;School;Supernatural,movie,8.9,true,true,false,2,2023-10-01T10:00:00Z
+user456,28851,A Silent Voice,Drama;School;Shounen,movie,9.0,true,true,true,3,2023-10-02T10:00:00Z
+user456,38000,Demon Slayer,Action;Demons;Historical;Shounen;Supernatural,anime,8.6,false,true,false,1,2023-10-03T10:00:00Z
+user789,9253,Steins;Gate,Sci-Fi;Thriller,anime,9.1,true,true,false,4,2023-10-01T10:00:00Z
+user789,1535,Death Note,Mystery;Police;Psychological;Supernatural;Thriller,anime,8.6,false,true,false,1,2023-10-02T10:00:00Z

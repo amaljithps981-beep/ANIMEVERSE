@@ -175,6 +175,37 @@ export function exportDatasetAsCSV(aggregatedData) {
     node.remove();
 }
 
+// ── Future ML Forecasting Dataset Builder ─────────────────────────────────────
+export function buildForecastingDataset(history, favorites, watched, myList) {
+    const logs = [];
+    const addLogs = (list, type, weight) => {
+        if (!list) return;
+        list.forEach(item => {
+            if (!item) return;
+            const date = item.addedAt ? new Date(item.addedAt) : new Date();
+            logs.push({
+                timestamp: date.toISOString(),
+                dateStr: date.toISOString().split('T')[0],
+                hour: date.getHours(),
+                type: type,
+                weight: weight,
+                title: item.title || item.name || '',
+                genres: Array.isArray(item.genres) 
+                    ? item.genres.map(g => typeof g === 'object' ? g.name : g).join(';') 
+                    : (item.genres || '')
+            });
+        });
+    };
+    addLogs(history, 'watch', 1.0);
+    addLogs(favorites, 'favorite', 2.0);
+    addLogs(watched, 'watched', 1.5);
+    addLogs(myList, 'watchlist', 0.5);
+
+    // Sort chronologically
+    logs.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+    return logs;
+}
+
 // ── 5. Platform Generator ───────────────────────────────────────────
 export async function generatePlatformDataset() {
     try {
@@ -201,6 +232,7 @@ export async function generatePlatformDataset() {
             const rawDataset = buildUserDataset(uid, history, favorites, watched, myList);
             const cleanedDataset = cleanDataset(rawDataset);
             const features = extractFeatures(cleanedDataset);
+            const forecastingLogs = buildForecastingDataset(history, favorites, watched, myList);
 
             totalRecords += cleanedDataset.length;
             
@@ -210,6 +242,7 @@ export async function generatePlatformDataset() {
             const payload = {
                 dataset: cleanedDataset,
                 features: features,
+                forecastingLogs: forecastingLogs,
                 generatedAt: new Date().toISOString()
             };
 

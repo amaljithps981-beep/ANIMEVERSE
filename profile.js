@@ -1,5 +1,6 @@
 import { auth, db, getDoc, doc, updateDoc, getAnalytics, getUserData } from './db.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { calculateUserForecast } from './trendPredictor.js';
 
 const userName     = document.getElementById("userName");
 const userEmail    = document.getElementById("userEmail");
@@ -38,6 +39,22 @@ onAuthStateChanged(auth, async (user) => {
         }
     } catch (e) {
         console.warn("Profile load error:", e);
+    }
+
+    // Load AI User Behavior Forecast
+    try {
+        const forecast = await calculateUserForecast(user);
+        if (forecast) {
+            const forecastGenre = document.getElementById("forecastGenre");
+            const forecastType = document.getElementById("forecastType");
+            const forecastCategory = document.getElementById("forecastCategory");
+            
+            if (forecastGenre) forecastGenre.innerText = forecast.predictedGenre || 'N/A';
+            if (forecastType) forecastType.innerText = forecast.predictedType || 'N/A';
+            if (forecastCategory) forecastCategory.innerText = forecast.predictedCategory || 'N/A';
+        }
+    } catch (e) {
+        console.warn("Forecast load error:", e);
     }
 
     // Load Analytics from helper

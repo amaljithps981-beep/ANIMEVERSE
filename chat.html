@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeVerse - AI Chat</title>
+    <link rel="stylesheet" href="chat.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="chat-container">
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+        <button class="new-chat-btn" id="btnNewChat">
+            <span style="font-size: 18px;">+</span> New Chat
+        </button>
+        
+        <div class="chat-history-list" id="chatHistoryList">
+            <!-- Dynamic history items -->
+        </div>
+
+        <a href="index.html" class="home-link">
+            <span>🏠</span> Back to Home
+        </a>
+    </div>
+
+    <!-- Main Chat -->
+    <div class="chat-main">
+        <div class="chat-header">
+            AnimeVerse AI Assistant 🤖
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- Initial AI Greeting -->
+            <div class="message-wrapper ai">
+                <div class="avatar ai">🤖</div>
+                <div class="message-bubble">
+                    Hello! I'm your AnimeVerse AI Assistant. How can I help you find something to watch today? <br><br>
+                    <small style="opacity:0.7;">Try asking:<br>
+                    - "Recommend me an action anime"<br>
+                    - "Suggest a horror movie"<br>
+                    - "Give me a series like Naruto"<br>
+                    - "What's trending right now?"</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-box">
+                <textarea id="chatInput" rows="1" placeholder="Ask for a recommendation..."></textarea>
+                <button class="send-btn" id="btnSend">Send</button>
+            </div>
+            <div style="text-align: center; font-size: 11px; color: #666; margin-top: 8px;">
+                AI recommendations are generated using Jikan API and your personalized Hybrid Profile.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="chat.js"></script>
+
+</body>
+</html>

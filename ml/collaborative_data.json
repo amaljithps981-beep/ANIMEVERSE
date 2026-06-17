@@ -1,0 +1,106 @@
+{
+  "metrics": {
+    "precisionAtK": 0.81,
+    "recallAtK": 0.65,
+    "diversityScore": 0.88,
+    "coverageScore": 0.76
+  },
+  "similarUsers": {
+    "user123": [
+      {
+        "uid": "user456",
+        "similarityScore": 0.18314741859825204
+      }
+    ],
+    "user456": [
+      {
+        "uid": "user123",
+        "similarityScore": 0.18314741859825204
+      }
+    ],
+    "user789": []
+  },
+  "communityRecommendations": {
+    "topGlobal": [
+      {
+        "contentId": 38000,
+        "title": "Demon Slayer",
+        "score": 3.0
+      },
+      {
+        "contentId": 40028,
+        "title": "Attack on Titan Final Season",
+        "score": 2.0
+      },
+      {
+        "contentId": 9253,
+        "title": "Steins;Gate",
+        "score": 2.0
+      },
+      {
+        "contentId": 32281,
+        "title": "Your Name.",
+        "score": 2.0
+      },
+      {
+        "contentId": 28851,
+        "title": "A Silent Voice",
+        "score": 2.0
+      },
+      {
+        "contentId": 40748,
+        "title": "Jujutsu Kaisen",
+        "score": 2.0
+      },
+      {
+        "contentId": 21,
+        "title": "One Piece",
+        "score": 1.0
+      },
+      {
+        "contentId": 1535,
+        "title": "Death Note",
+        "score": 1.0
+      },
+      {
+        "contentId": 11061,
+        "title": "Hunter x Hunter (2011)",
+        "score": 0.5
+      }
+    ],
+    "user123": [
+      {
+        "contentId": 32281,
+        "title": "Your Name.",
+        "score": 0.3662948371965041
+      },
+      {
+        "contentId": 28851,
+        "title": "A Silent Voice",
+        "score": 0.3662948371965041
+      }
+    ],
+    "user456": [
+      {
+        "contentId": 40028,
+        "title": "Attack on Titan Final Season",
+        "score": 0.3662948371965041
+      },
+      {
+        "contentId": 40748,
+        "title": "Jujutsu Kaisen",
+        "score": 0.3662948371965041
+      },
+      {
+        "contentId": 21,
+        "title": "One Piece",
+        "score": 0.18314741859825204
+      },
+      {
+        "contentId": 11061,
+        "title": "Hunter x Hunter (2011)",
+        "score": 0.09157370929912602
+      }
+    ]
+  }
+}

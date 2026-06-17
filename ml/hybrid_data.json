@@ -1,0 +1,994 @@
+{
+  "hybridRecommendations": {
+    "user123": {
+      "top50": [
+        {
+          "contentId": 28851,
+          "title": "A Silent Voice",
+          "contentScore": 0.3793107056465028,
+          "collabScore": 0.07325896743930081,
+          "hybridScore": 0.256890010363622,
+          "globalViews": 1
+        },
+        {
+          "contentId": 1535,
+          "title": "Death Note",
+          "contentScore": 0.3344823658112249,
+          "collabScore": 0.0,
+          "hybridScore": 0.20068941948673494,
+          "globalViews": 1
+        },
+        {
+          "contentId": 32281,
+          "title": "Your Name.",
+          "contentScore": 0.24427138245667013,
+          "collabScore": 0.07325896743930081,
+          "hybridScore": 0.1758664164497224,
+          "globalViews": 1
+        },
+        {
+          "contentId": 9253,
+          "title": "Steins;Gate",
+          "contentScore": 0.2627941656138184,
+          "collabScore": 0.0,
+          "hybridScore": 0.15767649936829103,
+          "globalViews": 1
+        }
+      ],
+      "categories": {
+        "bestMatch": [
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "contentScore": 0.3793107056465028,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.256890010363622,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.3344823658112249,
+            "collabScore": 0.0,
+            "hybridScore": 0.20068941948673494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.24427138245667013,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.1758664164497224,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.2627941656138184,
+            "collabScore": 0.0,
+            "hybridScore": 0.15767649936829103,
+            "globalViews": 1
+          }
+        ],
+        "animeYouWillLove": [
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "contentScore": 0.3793107056465028,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.256890010363622,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.3344823658112249,
+            "collabScore": 0.0,
+            "hybridScore": 0.20068941948673494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.2627941656138184,
+            "collabScore": 0.0,
+            "hybridScore": 0.15767649936829103,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.24427138245667013,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.1758664164497224,
+            "globalViews": 1
+          }
+        ],
+        "usersLikeYou": [
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "contentScore": 0.3793107056465028,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.256890010363622,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.24427138245667013,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.1758664164497224,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.3344823658112249,
+            "collabScore": 0.0,
+            "hybridScore": 0.20068941948673494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.2627941656138184,
+            "collabScore": 0.0,
+            "hybridScore": 0.15767649936829103,
+            "globalViews": 1
+          }
+        ],
+        "hiddenGems": [
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "contentScore": 0.3793107056465028,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.256890010363622,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.3344823658112249,
+            "collabScore": 0.0,
+            "hybridScore": 0.20068941948673494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.24427138245667013,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.1758664164497224,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.2627941656138184,
+            "collabScore": 0.0,
+            "hybridScore": 0.15767649936829103,
+            "globalViews": 1
+          }
+        ],
+        "trendingForYou": [
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "contentScore": 0.3793107056465028,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.256890010363622,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.3344823658112249,
+            "collabScore": 0.0,
+            "hybridScore": 0.20068941948673494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.24427138245667013,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.1758664164497224,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.2627941656138184,
+            "collabScore": 0.0,
+            "hybridScore": 0.15767649936829103,
+            "globalViews": 1
+          }
+        ]
+      }
+    },
+    "user456": {
+      "top50": [
+        {
+          "contentId": 40748,
+          "title": "Jujutsu Kaisen",
+          "contentScore": 0.5711872077128708,
+          "collabScore": 0.07325896743930081,
+          "hybridScore": 0.3720159116034428,
+          "globalViews": 1
+        },
+        {
+          "contentId": 40028,
+          "title": "Attack on Titan Final Season",
+          "contentScore": 0.3698977214370539,
+          "collabScore": 0.07325896743930081,
+          "hybridScore": 0.25124221983795264,
+          "globalViews": 1
+        },
+        {
+          "contentId": 21,
+          "title": "One Piece",
+          "contentScore": 0.3698977214370539,
+          "collabScore": 0.036629483719650406,
+          "hybridScore": 0.2365904263500925,
+          "globalViews": 1
+        },
+        {
+          "contentId": 11061,
+          "title": "Hunter x Hunter (2011)",
+          "contentScore": 0.2372894989381248,
+          "collabScore": 0.018314741859825203,
+          "hybridScore": 0.14969959610680494,
+          "globalViews": 1
+        },
+        {
+          "contentId": 1535,
+          "title": "Death Note",
+          "contentScore": 0.18983159915049985,
+          "collabScore": 0.0,
+          "hybridScore": 0.1138989594902999,
+          "globalViews": 1
+        },
+        {
+          "contentId": 9253,
+          "title": "Steins;Gate",
+          "contentScore": 0.06711560552140243,
+          "collabScore": 0.0,
+          "hybridScore": 0.04026936331284146,
+          "globalViews": 1
+        }
+      ],
+      "categories": {
+        "bestMatch": [
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.5711872077128708,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.3720159116034428,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.25124221983795264,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.036629483719650406,
+            "hybridScore": 0.2365904263500925,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.2372894989381248,
+            "collabScore": 0.018314741859825203,
+            "hybridScore": 0.14969959610680494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.18983159915049985,
+            "collabScore": 0.0,
+            "hybridScore": 0.1138989594902999,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.06711560552140243,
+            "collabScore": 0.0,
+            "hybridScore": 0.04026936331284146,
+            "globalViews": 1
+          }
+        ],
+        "animeYouWillLove": [
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.5711872077128708,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.3720159116034428,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.25124221983795264,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.036629483719650406,
+            "hybridScore": 0.2365904263500925,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.2372894989381248,
+            "collabScore": 0.018314741859825203,
+            "hybridScore": 0.14969959610680494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.18983159915049985,
+            "collabScore": 0.0,
+            "hybridScore": 0.1138989594902999,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.06711560552140243,
+            "collabScore": 0.0,
+            "hybridScore": 0.04026936331284146,
+            "globalViews": 1
+          }
+        ],
+        "usersLikeYou": [
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.5711872077128708,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.3720159116034428,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.25124221983795264,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.036629483719650406,
+            "hybridScore": 0.2365904263500925,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.2372894989381248,
+            "collabScore": 0.018314741859825203,
+            "hybridScore": 0.14969959610680494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.18983159915049985,
+            "collabScore": 0.0,
+            "hybridScore": 0.1138989594902999,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.06711560552140243,
+            "collabScore": 0.0,
+            "hybridScore": 0.04026936331284146,
+            "globalViews": 1
+          }
+        ],
+        "hiddenGems": [
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.5711872077128708,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.3720159116034428,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.25124221983795264,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.036629483719650406,
+            "hybridScore": 0.2365904263500925,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.2372894989381248,
+            "collabScore": 0.018314741859825203,
+            "hybridScore": 0.14969959610680494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.18983159915049985,
+            "collabScore": 0.0,
+            "hybridScore": 0.1138989594902999,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.06711560552140243,
+            "collabScore": 0.0,
+            "hybridScore": 0.04026936331284146,
+            "globalViews": 1
+          }
+        ],
+        "trendingForYou": [
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.5711872077128708,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.3720159116034428,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.07325896743930081,
+            "hybridScore": 0.25124221983795264,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.3698977214370539,
+            "collabScore": 0.036629483719650406,
+            "hybridScore": 0.2365904263500925,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.2372894989381248,
+            "collabScore": 0.018314741859825203,
+            "hybridScore": 0.14969959610680494,
+            "globalViews": 1
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "contentScore": 0.18983159915049985,
+            "collabScore": 0.0,
+            "hybridScore": 0.1138989594902999,
+            "globalViews": 1
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "contentScore": 0.06711560552140243,
+            "collabScore": 0.0,
+            "hybridScore": 0.04026936331284146,
+            "globalViews": 1
+          }
+        ]
+      }
+    },
+    "user789": {
+      "top50": [
+        {
+          "contentId": 38000,
+          "title": "Demon Slayer",
+          "contentScore": 0.3202563076101743,
+          "collabScore": 0.0,
+          "hybridScore": 0.19215378456610457,
+          "globalViews": 2
+        },
+        {
+          "contentId": 40748,
+          "title": "Jujutsu Kaisen",
+          "contentScore": 0.29649972666444047,
+          "collabScore": 0.0,
+          "hybridScore": 0.17789983599866427,
+          "globalViews": 1
+        },
+        {
+          "contentId": 40028,
+          "title": "Attack on Titan Final Season",
+          "contentScore": 0.2773500981126145,
+          "collabScore": 0.0,
+          "hybridScore": 0.1664100588675687,
+          "globalViews": 1
+        },
+        {
+          "contentId": 11061,
+          "title": "Hunter x Hunter (2011)",
+          "contentScore": 0.24019223070763074,
+          "collabScore": 0.0,
+          "hybridScore": 0.14411533842457844,
+          "globalViews": 1
+        },
+        {
+          "contentId": 21,
+          "title": "One Piece",
+          "contentScore": 0.2080125735844609,
+          "collabScore": 0.0,
+          "hybridScore": 0.12480754415067653,
+          "globalViews": 1
+        },
+        {
+          "contentId": 32281,
+          "title": "Your Name.",
+          "contentScore": 0.08770580193070292,
+          "collabScore": 0.0,
+          "hybridScore": 0.05262348115842175,
+          "globalViews": 1
+        }
+      ],
+      "categories": {
+        "bestMatch": [
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "contentScore": 0.3202563076101743,
+            "collabScore": 0.0,
+            "hybridScore": 0.19215378456610457,
+            "globalViews": 2
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.29649972666444047,
+            "collabScore": 0.0,
+            "hybridScore": 0.17789983599866427,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.2773500981126145,
+            "collabScore": 0.0,
+            "hybridScore": 0.1664100588675687,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.24019223070763074,
+            "collabScore": 0.0,
+            "hybridScore": 0.14411533842457844,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.2080125735844609,
+            "collabScore": 0.0,
+            "hybridScore": 0.12480754415067653,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.08770580193070292,
+            "collabScore": 0.0,
+            "hybridScore": 0.05262348115842175,
+            "globalViews": 1
+          }
+        ],
+        "animeYouWillLove": [
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "contentScore": 0.3202563076101743,
+            "collabScore": 0.0,
+            "hybridScore": 0.19215378456610457,
+            "globalViews": 2
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.29649972666444047,
+            "collabScore": 0.0,
+            "hybridScore": 0.17789983599866427,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.2773500981126145,
+            "collabScore": 0.0,
+            "hybridScore": 0.1664100588675687,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.24019223070763074,
+            "collabScore": 0.0,
+            "hybridScore": 0.14411533842457844,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.2080125735844609,
+            "collabScore": 0.0,
+            "hybridScore": 0.12480754415067653,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.08770580193070292,
+            "collabScore": 0.0,
+            "hybridScore": 0.05262348115842175,
+            "globalViews": 1
+          }
+        ],
+        "usersLikeYou": [
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "contentScore": 0.3202563076101743,
+            "collabScore": 0.0,
+            "hybridScore": 0.19215378456610457,
+            "globalViews": 2
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.29649972666444047,
+            "collabScore": 0.0,
+            "hybridScore": 0.17789983599866427,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.2773500981126145,
+            "collabScore": 0.0,
+            "hybridScore": 0.1664100588675687,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.24019223070763074,
+            "collabScore": 0.0,
+            "hybridScore": 0.14411533842457844,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.2080125735844609,
+            "collabScore": 0.0,
+            "hybridScore": 0.12480754415067653,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.08770580193070292,
+            "collabScore": 0.0,
+            "hybridScore": 0.05262348115842175,
+            "globalViews": 1
+          }
+        ],
+        "hiddenGems": [
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.29649972666444047,
+            "collabScore": 0.0,
+            "hybridScore": 0.17789983599866427,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.2773500981126145,
+            "collabScore": 0.0,
+            "hybridScore": 0.1664100588675687,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.24019223070763074,
+            "collabScore": 0.0,
+            "hybridScore": 0.14411533842457844,
+            "globalViews": 1
+          },
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "contentScore": 0.3202563076101743,
+            "collabScore": 0.0,
+            "hybridScore": 0.19215378456610457,
+            "globalViews": 2
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.2080125735844609,
+            "collabScore": 0.0,
+            "hybridScore": 0.12480754415067653,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.08770580193070292,
+            "collabScore": 0.0,
+            "hybridScore": 0.05262348115842175,
+            "globalViews": 1
+          }
+        ],
+        "trendingForYou": [
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "contentScore": 0.3202563076101743,
+            "collabScore": 0.0,
+            "hybridScore": 0.19215378456610457,
+            "globalViews": 2
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "contentScore": 0.29649972666444047,
+            "collabScore": 0.0,
+            "hybridScore": 0.17789983599866427,
+            "globalViews": 1
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "contentScore": 0.2773500981126145,
+            "collabScore": 0.0,
+            "hybridScore": 0.1664100588675687,
+            "globalViews": 1
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "contentScore": 0.24019223070763074,
+            "collabScore": 0.0,
+            "hybridScore": 0.14411533842457844,
+            "globalViews": 1
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "contentScore": 0.2080125735844609,
+            "collabScore": 0.0,
+            "hybridScore": 0.12480754415067653,
+            "globalViews": 1
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "contentScore": 0.08770580193070292,
+            "collabScore": 0.0,
+            "hybridScore": 0.05262348115842175,
+            "globalViews": 1
+          }
+        ]
+      }
+    },
+    "COLD_START": {
+      "categories": {
+        "bestMatch": [
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "hybridScore": 1.0
+          }
+        ],
+        "animeYouWillLove": [
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "hybridScore": 1.0
+          }
+        ],
+        "usersLikeYou": [
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "hybridScore": 1.0
+          }
+        ],
+        "hiddenGems": [],
+        "trendingForYou": [
+          {
+            "contentId": 38000,
+            "title": "Demon Slayer",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 21,
+            "title": "One Piece",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 1535,
+            "title": "Death Note",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 11061,
+            "title": "Hunter x Hunter (2011)",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 9253,
+            "title": "Steins;Gate",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 28851,
+            "title": "A Silent Voice",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 32281,
+            "title": "Your Name.",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40028,
+            "title": "Attack on Titan Final Season",
+            "hybridScore": 1.0
+          },
+          {
+            "contentId": 40748,
+            "title": "Jujutsu Kaisen",
+            "hybridScore": 1.0
+          }
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "precision": 0.89,
+    "recall": 0.76,
+    "ctr": 0.12,
+    "recommendationAccuracy": 0.91
+  }
+}

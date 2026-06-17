@@ -14,8 +14,89 @@
  *    to speed up homepage rendering, with auto-regeneration when seeds change.
  */
 
-import { getPreferences, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, analyzeUserPreferences, db } from './db.js';
-import { doc, setDoc, increment, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getPreferences, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, analyzeUserPreferences, db, logRecommendationMetric } from './db.js';
+import { doc, setDoc, increment, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+async function enrichDeepRecommendation(item) {
+    const isAnime = item.mediaType === 'anime' || item.mediaType === 'Anime';
+    const cid = item.contentId;
+    
+    // Try to get cached item data from localStorage to avoid redundant API hits
+    try {
+        if (isAnime) {
+            const cacheKey = `anime_details_${cid}`;
+            let cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                item.poster_path = parsed.poster_path;
+                item.vote_average = parsed.vote_average;
+                item.overview = parsed.overview;
+                item.mal_id = cid;
+                item.media_type = 'anime';
+                return item;
+            }
+            // Fetch from Jikan API
+            const res = await cachedFetch(`https://api.jikan.moe/v4/anime/${cid}`);
+            if (res && res.data) {
+                const anime = res.data;
+                const poster = anime.images && anime.images.jpg ? (anime.images.jpg.large_image_url || anime.images.jpg.image_url) : "";
+                item.poster_path = poster;
+                item.vote_average = anime.score || 8.0;
+                item.overview = anime.synopsis || "";
+                item.mal_id = cid;
+                item.media_type = 'anime';
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    poster_path: poster,
+                    vote_average: anime.score || 8.0,
+                    overview: anime.synopsis || ""
+                }));
+            }
+        } else {
+            const cacheKey = `tmdb_details_${item.mediaType}_${cid}`;
+            let cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                item.poster_path = parsed.poster_path;
+                item.vote_average = parsed.vote_average;
+                item.overview = parsed.overview;
+                item.id = cid;
+                item.media_type = item.mediaType;
+                return item;
+            }
+            // Fetch from TMDB
+            const type = item.mediaType === 'tv' ? 'tv' : 'movie';
+            const res = await cachedFetch(`${TMDB}/${type}/${cid}?api_key=${KEY}`);
+            if (res) {
+                const poster = res.poster_path ? IMG + res.poster_path : "";
+                item.poster_path = poster;
+                item.vote_average = res.vote_average || 7.0;
+                item.overview = res.overview || "";
+                item.id = cid;
+                item.media_type = item.mediaType;
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    poster_path: poster,
+                    vote_average: res.vote_average || 7.0,
+                    overview: res.overview || ""
+                }));
+            }
+        }
+    } catch (e) {
+        console.warn("Failed to enrich deep recommendation:", item.title, e);
+    }
+    
+    // Fallback if APIs fail
+    if (!item.poster_path) {
+        item.poster_path = `https://via.placeholder.com/200x300/1a1a1a/e50914?text=${encodeURIComponent(item.title)}`;
+    }
+    if (isAnime) {
+        item.mal_id = cid;
+        item.media_type = 'anime';
+    } else {
+        item.id = cid;
+        item.media_type = item.mediaType;
+    }
+    return item;
+}
 
 function sanitizeTitle(title) {
     return (title || '').replace(/[\.\#\$\/\[\]]/g, "_");
@@ -38,16 +119,34 @@ async function trackRecommendationImpression(titles) {
     }
 }
 
-async function trackRecommendationClick(title) {
-    if (!title) return;
+async function trackRecommendationClick(item) {
+    if (!item) return;
+    const title = item.title || item.name;
+    const cid = item.id || item.mal_id;
     try {
+        // Log click metric
+        await logRecommendationMetric('click');
+
         const docRef = doc(db, "analytics", "recommendations");
         const updates = {
             clicks: increment(1)
         };
-        const key = `clickedCount.${sanitizeTitle(title)}`;
-        updates[key] = increment(1);
+        if (title) {
+            const key = `clickedCount.${sanitizeTitle(title)}`;
+            updates[key] = increment(1);
+        }
         await setDoc(docRef, updates, { merge: true });
+
+        // Update User Feedback loop for Hybrid Engine
+        const { getAuth } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user && cid) {
+            const fbRef = doc(db, "recommendationFeedback", user.uid);
+            const fbUpdates = {};
+            fbUpdates[`clicks.${cid}`] = increment(1);
+            await setDoc(fbRef, fbUpdates, { merge: true });
+        }
     } catch (e) {
         console.warn("Error tracking recommendation click:", e);
     }
@@ -95,7 +194,7 @@ const TV_GENRES = {
 };
 
 // ── Excluded Titles (Watched, Favorites, Continue Watching) ─
-async function getExcludedTitles() {
+export async function getExcludedTitles() {
     const [favorites, watched, myList, hiddenSnap] = await Promise.all([
         fetchDbToStorage("favorites").then(r => r || []),
         fetchDbToStorage("watched").then(r => r || []),
@@ -178,7 +277,7 @@ export function calculateRecommendationScore(item, userPrefs) {
 }
 
 // ── Details Redirection ─────────────────────────────────────
-function goToDetails(item) {
+function goToDetails(item, fromRec = false) {
     const isAnime = item.media_type === 'Anime' || item.type === 'Anime' || !!item.mal_id;
     const image = item.poster_path && item.poster_path.startsWith("http")
         ? item.poster_path
@@ -195,6 +294,7 @@ function goToDetails(item) {
         episodes:    item.number_of_episodes || item.episodes || null,
         id:          isAnime ? null : (item.id || null),
         mal_id:      item.mal_id || null,
+        fromRecommendation: fromRec
     };
     localStorage.setItem("selectedItem", JSON.stringify(selectedItem));
     window.location.href = "details.html";
@@ -230,14 +330,15 @@ function renderCards(items, container, excludedSet, limit = 20) {
                 </div>
             </div>`;
         card.addEventListener("click", () => {
-            trackRecommendationClick(title);
-            goToDetails(item);
+            trackRecommendationClick(item);
+            goToDetails(item, true);
         });
         container.appendChild(card);
         count++;
     }
     if (titlesTracked.length > 0) {
         trackRecommendationImpression(titlesTracked);
+        logRecommendationMetric('impression', titlesTracked.length);
     }
     if (container.updateCarousel) {
         container.updateCarousel();
@@ -245,7 +346,7 @@ function renderCards(items, container, excludedSet, limit = 20) {
 }
 
 // ── TMDB recommendations by title ──────────────────────────
-async function fetchSimilarFromTitle(seedTitle) {
+export async function fetchSimilarFromTitle(seedTitle) {
     if (!seedTitle) return { seed: '', items: [] };
     try {
         const search = await cachedFetch(`${TMDB}/search/multi?api_key=${KEY}&query=${encodeURIComponent(seedTitle)}`);
@@ -594,6 +695,186 @@ export async function buildRecommendations() {
             }
         } else {
             trendSection.classList.add("hidden");
+        }
+    }
+
+    // ── PHASE 5: HYBRID RECOMMENDATION ENGINE UI BINDING ──
+    const auth = getAuth();
+    const user = auth.currentUser;
+    
+    // 1. Fetch User Feedback for Real-Time Adjustment
+    let userFeedback = {};
+    if (user) {
+        try {
+            const feedbackSnap = await getDoc(doc(db, "recommendationFeedback", user.uid));
+            if (feedbackSnap.exists()) {
+                userFeedback = feedbackSnap.data().clicks || {};
+            }
+        } catch (e) {
+            console.warn("Could not load user feedback", e);
+        }
+    }
+
+    // 2. Fetch Hybrid Recommendations (or Cold Start)
+    let hybridData = null;
+    try {
+        const fetchUid = user ? user.uid : "COLD_START";
+        let docSnap = await getDoc(doc(db, "hybridRecommendations", fetchUid));
+        
+        // Fallback to COLD_START if user has no hybrid data yet
+        if (!docSnap.exists() && user) {
+            docSnap = await getDoc(doc(db, "hybridRecommendations", "COLD_START"));
+        }
+
+        if (docSnap.exists()) {
+            hybridData = docSnap.data().categories;
+        }
+    } catch (e) {
+        console.warn("Failed to load hybrid recommendations", e);
+    }
+
+    // Helper to map hybrid payload to AnimeVerse UI cards and apply real-time feedback
+    const processHybridCategory = (items, prefixLabel) => {
+        if (!items) return [];
+        return items.map(r => {
+            // Apply real-time feedback reinforcement (+0.05 per click)
+            const clicks = userFeedback[r.contentId] || 0;
+            const finalScore = r.hybridScore + (clicks * 0.05);
+            const placeholderImg = `https://via.placeholder.com/200x300/1a1a1a/e50914?text=${encodeURIComponent(r.title)}`;
+            return {
+                id: r.contentId, 
+                mal_id: r.contentId, 
+                title: r.title, 
+                name: r.title, 
+                mediaType: "anime",
+                media_type: "anime",
+                poster_path: placeholderImg,
+                images: { jpg: { image_url: placeholderImg } }
+            };
+        });
+    };
+
+    // ── FALLBACK RECOMMENDATION SYSTEM (DL -> Hybrid -> CB) ──
+    const deepSection = document.getElementById("deepRecommendationsSection");
+    const deepContainer = document.getElementById("deepRecommendationsContainer");
+    const bestMatchSection = document.getElementById("hybridBestMatchSection");
+    const bestMatchContainer = document.getElementById("hybridBestMatchContainer");
+    const recSection = document.getElementById("recommendedSection");
+    const recContainer = document.getElementById("recommendedContainer");
+    
+    let deepSuccess = false;
+    let hybridSuccess = false;
+    let contentSuccess = false;
+    
+    // 1. Fetch Deep Learning Recommendations
+    try {
+        const fetchUid = user ? user.uid : "COLD_START";
+        const deepSnap = await getDoc(doc(db, "deepRecommendations", fetchUid));
+        let deepRecsData = null;
+        if (deepSnap.exists()) {
+            deepRecsData = deepSnap.data().recommendations;
+        } else if (!user) {
+            // Cold start fallback
+            const coldSnap = await getDoc(doc(db, "deepRecommendations", "COLD_START"));
+            if (coldSnap.exists()) {
+                deepRecsData = coldSnap.data().recommendations;
+            }
+        }
+        
+        if (deepRecsData && deepRecsData.length > 0) {
+            const enrichedRecs = await Promise.all(deepRecsData.map(item => enrichDeepRecommendation(item)));
+            renderCards(enrichedRecs, deepContainer, excludedSet);
+            if (deepSection) deepSection.classList.remove("hidden");
+            deepSuccess = true;
+            console.log("Deep Learning recommendations loaded successfully.");
+        }
+    } catch (e) {
+        console.warn("Failed to load deep learning recommendations:", e);
+    }
+    
+    // Apply Fallback Strategy
+    if (deepSuccess) {
+        // Deep learning recommendations are displayed! Hide Hybrid and Content-Based primary carousels.
+        if (bestMatchSection) bestMatchSection.classList.add("hidden");
+        if (recSection) recSection.classList.add("hidden");
+    } else {
+        // Fallback to Hybrid
+        if (deepSection) deepSection.classList.add("hidden");
+        
+        if (hybridData && hybridData.bestMatch && hybridData.bestMatch.length > 0) {
+            const items = processHybridCategory(hybridData.bestMatch, "Best");
+            if (items.length > 0) {
+                renderCards(items, bestMatchContainer, excludedSet);
+                if (bestMatchSection) bestMatchSection.classList.remove("hidden");
+                hybridSuccess = true;
+                console.log("Hybrid recommendations loaded as fallback.");
+            }
+        }
+        
+        if (hybridSuccess) {
+            if (recSection) recSection.classList.add("hidden");
+        } else {
+            // Fallback to Content-Based
+            if (bestMatchSection) bestMatchSection.classList.add("hidden");
+            
+            if (recommendationsData && recommendationsData.recommendedForYou && recommendationsData.recommendedForYou.length > 0) {
+                renderCards(recommendationsData.recommendedForYou, recContainer, excludedSet);
+                if (recSection) recSection.classList.remove("hidden");
+                contentSuccess = true;
+                console.log("Content-Based recommendations loaded as fallback.");
+            }
+            
+            if (!contentSuccess) {
+                // Fallback to Popular
+                if (recSection) recSection.classList.add("hidden");
+                console.log("No personalized recommendations available. Fallback to Popular.");
+            }
+        }
+    }
+
+    if (hybridData) {
+        // 2. Anime You Will Love
+        const youLoveContainer = document.getElementById("hybridAnimeYouLoveContainer");
+        const youLoveSection = document.getElementById("hybridAnimeYouLoveSection");
+        if (youLoveContainer && youLoveSection && hybridData.animeYouWillLove) {
+            const items = processHybridCategory(hybridData.animeYouWillLove, "Love");
+            if (items.length > 0) {
+                renderCards(items, youLoveContainer, excludedSet);
+                youLoveSection.classList.remove("hidden");
+            }
+        }
+
+        // 3. Users Like You Also Enjoy
+        const likeYouContainer = document.getElementById("hybridUsersLikeYouContainer");
+        const likeYouSection = document.getElementById("hybridUsersLikeYouSection");
+        if (likeYouContainer && likeYouSection && hybridData.usersLikeYou) {
+            const items = processHybridCategory(hybridData.usersLikeYou, "Collab");
+            if (items.length > 0) {
+                renderCards(items, likeYouContainer, excludedSet);
+                likeYouSection.classList.remove("hidden");
+            }
+        }
+
+        // 4. Hidden Gems
+        const gemsContainer = document.getElementById("hybridHiddenGemsContainer");
+        const gemsSection = document.getElementById("hybridHiddenGemsSection");
+        if (gemsContainer && gemsSection && hybridData.hiddenGems) {
+            const items = processHybridCategory(hybridData.hiddenGems, "Gem");
+            if (items.length > 0) {
+                renderCards(items, gemsContainer, excludedSet);
+                gemsSection.classList.remove("hidden");
+            }
+        }
+
+        // 5. Trending For You
+        const trendingContainer = document.getElementById("hybridTrendingContainer");
+        const trendingSection = document.getElementById("hybridTrendingSection");
+        if (trendingContainer && trendingSection && hybridData.trendingForYou) {
+            const items = processHybridCategory(hybridData.trendingForYou, "Trend");
+            if (items.length > 0) {
+                renderCards(items, trendingContainer, excludedSet);
+                trendingSection.classList.remove("hidden");
+            }
         }
     }
 }

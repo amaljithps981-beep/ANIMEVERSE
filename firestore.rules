@@ -49,6 +49,37 @@ service cloud.firestore {
     match /mlDataset/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
     }
+    match /similarUsers/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /communityRecommendations/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /hybridRecommendations/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /recommendationFeedback/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /chatHistory/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /chatHistory/{userId}/sessions/{sessionId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+    match /chatAnalytics/{document} {
+      allow read: if true;
+      allow write: if true; // In prod, we'd use a cloud function, but here we allow client increments
+    }
+    match /trendPredictions/{document} {
+      allow read: if true;
+      allow write: if request.auth != null || isAdmin();
+    }
+    match /userForecasts/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
 
     // Rules for global content filters managed by admin
     match /featuredContent/{document} {
