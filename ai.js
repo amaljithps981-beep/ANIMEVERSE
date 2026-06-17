@@ -590,7 +590,7 @@ export async function processAiQuery(query, user, contextState = {}) {
         } catch (e) {
             console.error("[Chat] Trending fallback failed:", e);
             return {
-                text: "Sorry, recommendation service is unavailable.",
+                text: "Sorry, I couldn't generate a recommendation right now.",
                 cards: []
             };
         }
