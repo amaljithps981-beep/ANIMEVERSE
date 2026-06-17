@@ -1,20 +1,11 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { FIREBASE_CONFIG, DB_TIMEOUT_MS, TMDB_GENRES } from './config.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCZWdwzHo5IRGWQHs6IzsFtXdoLm10gmII",
-  authDomain: "animeverse-4c635.firebaseapp.com",
-  projectId: "animeverse-4c635",
-  storageBucket: "animeverse-4c635.firebasestorage.app",
-  messagingSenderId: "200334860457",
-  appId: "1:200334860457:web:d493dd34a5f541d9e8c9b8",
-  measurementId: "G-8VMLXQFDWY"
-};
-
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length > 0 ? getApp() : initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
-const db = getFirestore(app);
+export const db = getFirestore(app);
 
 let currentUser = null;
 let isAuthInitialized = false;
@@ -51,34 +42,26 @@ export async function getActiveUser() {
 }
 
 
-// Deduplicate a list of items by case-insensitive, trimmed title or name
 export function deduplicateList(dataArray) {
-    console.log('[deduplicateList] Input:', dataArray);
     if (!dataArray || !Array.isArray(dataArray)) {
-        console.warn('[deduplicateList] Invalid input — returning []');
         return [];
     }
     const uniqueMap = new Map();
     dataArray.forEach(item => {
         if (!item) return;
         const title = item.title || item.name;
-        if (!title) {
-            console.warn('[deduplicateList] Item has no title/name, skipping:', item);
-            return;
-        }
+        if (!title) return;
         const key = title.toLowerCase().trim();
         if (!uniqueMap.has(key)) {
             uniqueMap.set(key, item);
         }
     });
-    const result = Array.from(uniqueMap.values()).map(item => {
+    return Array.from(uniqueMap.values()).map(item => {
         if (!item.addedAt) {
             item.addedAt = new Date().toISOString();
         }
         return item;
     });
-    console.log('[deduplicateList] Output:', result);
-    return result;
 }
 
 // Sequential queue helper to serialize read/write operations per key
@@ -94,176 +77,101 @@ async function enqueueTask(key, task) {
     return nextPromise;
 }
 
-// Await a promise with a timeout, resolving to null if the timeout expires
-export async function awaitWithTimeout(promise, timeoutMs) {
+export async function awaitWithTimeout(promise, timeoutMs = DB_TIMEOUT_MS) {
     let timeoutId;
     const timeoutPromise = new Promise((resolve) => {
-        timeoutId = setTimeout(() => {
-            console.warn(`awaitWithTimeout: timed out after ${timeoutMs}ms`);
-            resolve(null);
-        }, timeoutMs);
+        timeoutId = setTimeout(() => resolve(null), timeoutMs);
     });
     return Promise.race([promise, timeoutPromise]).finally(() => {
         clearTimeout(timeoutId);
     });
 }
 
-// Save user list data to Firestore
-// PRIMARY PATH: /users/{uid} document, field = collectionName
-// BACKUP PATH:  /{collectionName}/{uid} document, field = items
 export async function saveUserData(collectionName, dataArray) {
     const user = await getActiveUser();
-    if (!user) {
-        console.warn(`[saveUserData] No user — skipping Firestore write for "${collectionName}"`);
-        return;
-    }
+    if (!user) return;
 
-    // Update in-memory cache
     if (!userListCache[user.uid]) userListCache[user.uid] = {};
     userListCache[user.uid][collectionName] = dataArray;
 
-    console.log(`[saveUserData] Writing "${collectionName}" for uid=${user.uid}. Items: ${dataArray.length}`);
-    console.log(`[saveUserData] Payload:`, dataArray);
-
     let primaryOk = false;
-    let backupOk  = false;
-
-    // PRIMARY: store array as a field in /users/{uid}
     try {
         const userDocRef = doc(db, 'users', user.uid);
-        const res = await awaitWithTimeout(setDoc(userDocRef, { [collectionName]: dataArray }, { merge: true }), 1500);
-        if (res !== null) {
-            console.log(`[saveUserData] ✅ PRIMARY write success: /users/${user.uid}.${collectionName}`);
-            primaryOk = true;
-        } else {
-            console.warn(`[saveUserData] ❌ PRIMARY write TIMED OUT: /users/${user.uid}.${collectionName}`);
-        }
+        await awaitWithTimeout(setDoc(userDocRef, { [collectionName]: dataArray }, { merge: true }));
+        primaryOk = true;
     } catch (err) {
-        console.error(`[saveUserData] ❌ PRIMARY write FAILED: /users/${user.uid}.${collectionName}`, err);
+        console.error(`Save ${collectionName} failed:`, err);
     }
 
-    // BACKUP: store array in /{collectionName}/{uid}.items
-    try {
-        const colDocRef = doc(db, collectionName, user.uid);
-        const res = await awaitWithTimeout(setDoc(colDocRef, { items: dataArray }, { merge: true }), 1500);
-        if (res !== null) {
-            console.log(`[saveUserData] ✅ BACKUP write success: /${collectionName}/${user.uid}`);
-            backupOk = true;
-        } else {
-            console.warn(`[saveUserData] ❌ BACKUP write TIMED OUT: /${collectionName}/${user.uid}`);
+    if (!primaryOk) {
+        try {
+            const colDocRef = doc(db, collectionName, user.uid);
+            await awaitWithTimeout(setDoc(colDocRef, { items: dataArray }, { merge: true }));
+        } catch (err) {
+            console.error(`Backup save ${collectionName} failed:`, err);
         }
-    } catch (err) {
-        console.error(`[saveUserData] ❌ BACKUP write FAILED: /${collectionName}/${user.uid}`, err);
-    }
-
-    if (!primaryOk && !backupOk) {
-        console.error(`[saveUserData] ❌❌ ALL write paths FAILED for "${collectionName}". Data NOT persisted to Firestore.`);
     }
 }
 
-// Read user list data from Firestore
-// Tries PRIMARY path first, then BACKUP
 export async function getUserData(collectionName) {
     const user = await getActiveUser();
-    if (!user) {
-        console.warn(`[getUserData] No user — cannot read "${collectionName}"`);
-        return null;
-    }
+    if (!user) return null;
 
-    // Check in-memory cache first
     if (userListCache[user.uid] && userListCache[user.uid][collectionName]) {
-        console.log(`[getUserData] memory cache hit: /users/${user.uid}.${collectionName}`);
         return userListCache[user.uid][collectionName];
     }
 
-    console.log(`[getUserData] Reading "${collectionName}" for uid=${user.uid}`);
-
-    // PRIMARY: read field from /users/{uid}
     try {
         const userDocRef = doc(db, 'users', user.uid);
-        const snap = await awaitWithTimeout(getDoc(userDocRef), 1500);
-        if (snap && snap.exists()) {
-            const dataObj = snap.data();
-            if (collectionName in dataObj) {
-                const val = dataObj[collectionName];
-                if (Array.isArray(val)) {
-                    console.log(`[getUserData] ✅ PRIMARY read success: /users/${user.uid}.${collectionName}. Count: ${val.length}`);
-                    // Save to memory cache
-                    if (!userListCache[user.uid]) userListCache[user.uid] = {};
-                    userListCache[user.uid][collectionName] = val;
-                    return val;
-                }
+        const snap = await awaitWithTimeout(getDoc(userDocRef));
+        if (snap?.exists()) {
+            const val = snap.data()[collectionName];
+            if (Array.isArray(val)) {
+                if (!userListCache[user.uid]) userListCache[user.uid] = {};
+                userListCache[user.uid][collectionName] = val;
+                return val;
             }
-            console.warn(`[getUserData] PRIMARY path exists but field "${collectionName}" is empty/missing.`);
-        } else {
-            console.warn(`[getUserData] PRIMARY /users/${user.uid} document does NOT exist yet or read timed out.`);
         }
     } catch (err) {
-        console.error(`[getUserData] ❌ PRIMARY read FAILED: /users/${user.uid}.${collectionName}`, err);
+        console.error(`Failed to read ${collectionName}:`, err);
     }
 
-    // BACKUP: read from /{collectionName}/{uid}.items
     try {
         const colDocRef = doc(db, collectionName, user.uid);
-        const snap = await awaitWithTimeout(getDoc(colDocRef), 1500);
-        if (snap && snap.exists()) {
-            const dataObj = snap.data();
-            if ('items' in dataObj) {
-                const val = dataObj.items;
-                if (Array.isArray(val)) {
-                    console.log(`[getUserData] ✅ BACKUP read success: /${collectionName}/${user.uid}. Count: ${val.length}`);
-                    // Save to memory cache
-                    if (!userListCache[user.uid]) userListCache[user.uid] = {};
-                    userListCache[user.uid][collectionName] = val;
-                    return val;
-                }
+        const snap = await awaitWithTimeout(getDoc(colDocRef));
+        if (snap?.exists()) {
+            const val = snap.data().items;
+            if (Array.isArray(val)) {
+                if (!userListCache[user.uid]) userListCache[user.uid] = {};
+                userListCache[user.uid][collectionName] = val;
+                return val;
             }
-            console.warn(`[getUserData] BACKUP path exists but items field is empty/missing.`);
-        } else {
-            console.warn(`[getUserData] /${collectionName}/${user.uid} document does NOT exist yet or read timed out.`);
         }
     } catch (err) {
-        console.error(`[getUserData] ❌ BACKUP read FAILED: /${collectionName}/${user.uid}`, err);
+        console.error(`Failed to read ${collectionName} backup:`, err);
     }
-
-    console.warn(`[getUserData] Nothing found for "${collectionName}" in any Firestore path. Returning null.`);
     return null;
 }
 
-// Wrapper to replace localStorage logic with strict duplicate prevention and sequential queueing
 export async function syncStorageToDb(key, dataArray) {
-    console.log(`[syncStorageToDb] key="${key}" | Before dedupe:`, dataArray);
     const uniqueArray = deduplicateList(dataArray);
-    console.log(`[syncStorageToDb] key="${key}" | After dedupe:`, uniqueArray);
-
-    // Save to local storage synchronously for instantaneous UI update
     localStorage.setItem(key, JSON.stringify(uniqueArray));
-    console.log(`[syncStorageToDb] key="${key}" | Written to localStorage. Count: ${uniqueArray.length}`);
-
-    // Enqueue Firestore write
     return enqueueTask(key, async () => {
         try {
             await saveUserData(key, uniqueArray);
-            console.log(`[syncStorageToDb] key="${key}" | Firestore write completed`);
         } catch (error) {
-            console.error(`[syncStorageToDb] key="${key}" | Firestore write FAILED:`, error);
+            console.error(`Sync ${key} to DB failed:`, error);
         }
     });
 }
 
 export async function fetchDbToStorage(key) {
     return enqueueTask(key, async () => {
-        console.log(`[fetchDbToStorage] key="${key}" | Starting Firestore read...`);
         const data = await getUserData(key);
-        console.log(`[fetchDbToStorage] key="${key}" | Firestore read result:`, data);
-
         if (data !== null) {
             localStorage.setItem(key, JSON.stringify(data));
-            console.log(`[fetchDbToStorage] key="${key}" | localStorage updated. Count: ${data.length}`);
             return data;
         }
-
-        console.warn(`[fetchDbToStorage] key="${key}" | getUserData returned null (no user/no record/timed out). localStorage untouched.`);
         return null;
     });
 }
@@ -498,26 +406,23 @@ export async function analyzeUserPreferences() {
     }
 }
 
-// Read user's preference scores from Firestore
 export async function getPreferences() {
     try {
         const user = await getActiveUser();
-        if (!user) return { genres: {}, animeGenres: {}, movieGenres: {}, tvGenres: {}, types: {}, watchingTimes: {} };
+        if (!user) return { genres: {}, types: {} };
         
-        // Check cache
         if (userPrefsCache[user.uid]) {
-            console.log(`[getPreferences] memory cache hit for user ${user.uid}`);
             return userPrefsCache[user.uid];
         }
 
         const prefRef = doc(db, "userPreferences", user.uid);
-        const snap = await awaitWithTimeout(getDoc(prefRef), 1500);
-        const data = (snap && snap.exists()) ? snap.data() : { genres: {}, animeGenres: {}, movieGenres: {}, tvGenres: {}, types: {}, watchingTimes: {} };
+        const snap = await awaitWithTimeout(getDoc(prefRef));
+        const data = snap?.exists() ? snap.data() : { genres: {}, types: {} };
         userPrefsCache[user.uid] = data;
         return data;
     } catch (e) {
-        console.warn("getPreferences error:", e);
-        return { genres: {}, animeGenres: {}, movieGenres: {}, tvGenres: {}, types: {}, watchingTimes: {} };
+        console.error("getPreferences failed:", e);
+        return { genres: {}, types: {} };
     }
 }
 
@@ -591,13 +496,21 @@ export async function fetchCachedRecommendations() {
         const user = await getActiveUser();
         if (!user) return null;
 
-        // Check cache
         if (recsCache[user.uid]) {
-            console.log(`[fetchCachedRecommendations] memory cache hit for user ${user.uid}`);
             return recsCache[user.uid];
         }
 
         const recsRef = doc(db, "recommendations", user.uid);
+        const snap = await awaitWithTimeout(getDoc(recsRef));
+        if (snap?.exists()) {
+            recsCache[user.uid] = snap.data();
+            return recsCache[user.uid];
+        }
+    } catch (e) {
+        console.error("fetchCachedRecommendations failed:", e);
+    }
+    return null;
+}
         const snap = await awaitWithTimeout(getDoc(recsRef), 1500);
         if (snap && snap.exists()) {
             const data = snap.data();

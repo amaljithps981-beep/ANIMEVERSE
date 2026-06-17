@@ -1,83 +1,114 @@
-# AnimeVerse 🌌
+# AnimeVerse
 
-**The Ultimate Anime Streaming & Tracking Platform.**
+Your personal anime streaming and tracking platform.
 
-AnimeVerse is a modern, responsive, and dynamic platform to discover, track, and watch your favorite Anime, Movies, and TV Series. It uses a custom AI recommendation engine and comprehensive analytics to give users a personalized viewing experience.
+## What is AnimeVerse?
 
-## ✨ Features
+AnimeVerse is a web app for anime and TV lovers. Track what you're watching, save favorites, get recommendations, and discover new titles all in one place.
 
-- **Personalized Recommendations:** Advanced scoring algorithm based on your watch history and favorite genres.
-- **Unified Catalog:** Integrates both TMDB and Jikan APIs for comprehensive Anime, TV Series, and Movie data.
-- **Smart Tracking:** Keep track of what you're watching, your favorites, and your "My List".
-- **Admin Dashboard:** Monitor platform growth, most active users, and trending genres with Chart.js visualization.
-- **User Insights:** Activity timelines, viewing streaks, and recommendation accuracy stats on user profiles.
-- **PWA Ready:** Install AnimeVerse on your home screen for a native app-like experience.
-- **Secure Authentication:** Powered by Firebase Auth.
+## Features
 
-## 🛠 Tech Stack
+- **Watch Anime, Movies & TV**: Stream content from integrated sources
+- **Track Your Progress**: Keep notes on what you're watching and where you left off
+- **Save Favorites**: Build your personal collection of favorites
+- **My List**: Create custom watchlists
+- **Watch History**: See everything you've watched
+- **Smart Recommendations**: Get personalized suggestions based on your viewing habits
+- **User Profile**: View your stats and activity
+- **Admin Dashboard**: Analytics and platform insights (for admins)
+- **Works Offline**: Install as an app on your device
+- **Secure Auth**: Firebase-powered login
 
-- **Frontend:** Vanilla HTML5, CSS3, JavaScript (ES6+ Modules)
-- **Backend/Database:** Firebase Firestore, Firebase Authentication
-- **APIs:** TMDB API, Jikan (MyAnimeList) API
-- **Visualization:** Chart.js
-- **PWA:** Service Workers, Web Manifest
+## Getting Started
 
-## 🚀 Installation & Setup
+### Prerequisites
+You need:
+- A Firebase project (sign up at [firebase.google.com](https://firebase.google.com))
+- Node.js (for running a local server)
 
-1. **Clone the repository:**
+### Local Setup
+
+1. Clone the repo:
    ```bash
    git clone https://github.com/yourusername/animeverse.git
    cd animeverse
    ```
 
-2. **Run Locally:**
-   Since it uses ES modules, you must serve it over HTTP. You can use any static server.
-   ```bash
-   npx serve .
-   ```
-   *or*
+2. Start a local server:
    ```bash
    npm install -g http-server
    http-server .
    ```
-
-3. **Firebase Setup:**
-   Ensure you have a Firebase project created and replace the `firebaseConfig` block in `guard.js` and `db.js` with your own credentials if you intend to use a separate database.
-
-## 📦 Deployment Options
-
-### Deploying to Firebase Hosting (Recommended)
-
-1. Install Firebase CLI:
+   Or:
    ```bash
-   npm install -g firebase-tools
-   ```
-2. Login to your account:
-   ```bash
-   firebase login
-   ```
-3. Deploy the project:
-   ```bash
-   firebase deploy --only hosting
+   npx serve .
    ```
 
-### Deploying to Vercel
+3. Open `http://localhost:8080` in your browser
 
-1. Install Vercel CLI:
-   ```bash
-   npm i -g vercel
-   ```
-2. Run deployment:
-   ```bash
-   vercel
-   ```
-3. *Note: Ensure your output directory is set to `.` (the root folder).*
+### Firebase Setup
 
-### Deploying to Netlify
+Update your Firebase config in `config.js`:
+```javascript
+export const FIREBASE_CONFIG = {
+  apiKey: "YOUR_KEY",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  // ... other keys
+};
+```
 
-1. Drag and drop the project folder into Netlify's manual deploy dashboard.
-2. *Alternatively*, connect your GitHub repository to Netlify and it will automatically deploy the `main` branch.
+## Deployment
 
-## 📜 License
+### Firebase Hosting (Recommended)
+```bash
+npm install -g firebase-tools
+firebase login
+firebase deploy --only hosting
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Vercel
+```bash
+npm i -g vercel
+vercel
+```
+
+### Netlify
+Drag and drop the project folder into Netlify's dashboard.
+
+## Tech Stack
+
+- **Frontend**: HTML5, CSS3, JavaScript ES6+
+- **Database**: Firebase Firestore
+- **Auth**: Firebase Authentication
+- **APIs**: TMDB API, Jikan (MyAnimeList) API
+- **Charts**: Chart.js
+
+## Project Structure
+
+```
+├── index.html              # Home page
+├── login.html              # Login/Signup
+├── watch.html              # Video player
+├── profile.html            # User profile
+├── favorites.html          # Favorites list
+├── mylist.html             # My List
+├── history.html            # Watch history
+├── watched.html            # Watched titles
+├── config.js               # App configuration
+├── db.js                   # Database utilities
+├── auth.js                 # Authentication
+├── api.js                  # API helpers
+├── ai.js                   # Recommendation engine
+├── script.js               # Main app logic
+├── style.css               # Styling
+└── ml/                     # Machine learning models
+```
+
+## Contributing
+
+Feel free to fork, modify, and improve!
+
+## License
+
+MIT License - see LICENSE file for details.

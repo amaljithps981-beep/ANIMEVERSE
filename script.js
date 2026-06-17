@@ -3,16 +3,11 @@ import { collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.co
 import { analytics } from './analytics.js';
 import { processAiQuery, saveToHistory, trackAnalytics } from './ai.js';
 import { triggerSmartSuggestions } from './smartSearch.js';
+import { TMDB_API_BASE, TMDB_API_KEY, TMDB_IMAGE_BASE } from './config.js';
 
 const _hiddenContentSet = new Set();
-
-const TMDB_API = "https://api.themoviedb.org/3";
-const API_KEY  = "c2772546356cffa3fb0504e91da76541";
-
-// Fetch in-memory API caching Map
 const _apiCache = new Map();
 
-// Global UI Helpers
 window.showErrorState = function(message = "Something went wrong. Please try again.") {
     return `<div class="error-state">
                 <h3 style="margin-bottom: 10px;">⚠ Oops!</h3>
@@ -28,7 +23,6 @@ window.showEmptyState = function(message = "No items found.") {
             </div>`;
 };
 
-// Pre-fetch all user list data from cloud to local storage on startup
 fetchDbToStorage("watchHistory");
 fetchDbToStorage("continueWatching");
 fetchDbToStorage("favorites");
@@ -37,14 +31,11 @@ fetchDbToStorage("myList");
 
 let firstAnimeLoad = true;
 let firstMovieLoad = true;
-let firstTVLoad    = true;
+let firstTVLoad = true;
 let animePage = 1;
 let moviePage = 1;
-let tvPage    = 1;
+let tvPage = 1;
 
-const IMG = "https://image.tmdb.org/t/p/w500";
-
-// Generic cached JSON fetcher
 async function fetchCachedJson(url) {
     if (_apiCache.has(url)) return _apiCache.get(url);
     try {
@@ -120,7 +111,7 @@ let heroInterval = null;
 
 async function searchTmdbForAnime(animeTitle) {
     try {
-        const searchUrl = `${TMDB_API}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(animeTitle)}`;
+        const searchUrl = `${TMDB_API_BASE}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(animeTitle)}`;
         const searchData = await fetchCachedJson(searchUrl);
         if (searchData && searchData.results && searchData.results.length > 0) {
             const match = searchData.results.find(r => r.backdrop_path && (r.media_type === 'tv' || r.media_type === 'movie'));
@@ -136,8 +127,8 @@ async function searchTmdbForAnime(animeTitle) {
 async function initHeroRotation() {
     try {
         const [moviesData, tvData, animeData] = await Promise.all([
-            fetchCachedJson(`${TMDB_API}/trending/movie/day?api_key=${API_KEY}`),
-            fetchCachedJson(`${TMDB_API}/trending/tv/day?api_key=${API_KEY}`),
+            fetchCachedJson(`${TMDB_API_BASE}/trending/movie/day?api_key=${TMDB_API_KEY}`),
+            fetchCachedJson(`${TMDB_API_BASE}/trending/tv/day?api_key=${TMDB_API_KEY}`),,
             fetchCachedJson(`https://api.jikan.moe/v4/top/anime?filter=bypopularity`)
         ]);
 
@@ -231,7 +222,7 @@ function playHeroTrailer(item) {
         return;
     }
 
-    fetchCachedJson(`${TMDB_API}/${type}/${id}/videos?api_key=${API_KEY}`).then(videoRes => {
+    fetchCachedJson(`${TMDB_API_BASE}/${type}/${id}/videos?api_key=${TMDB_API_KEY}`).then(videoRes => {
         const ytId = videoRes && videoRes.results ? findBestTrailer(videoRes.results) : null;
         if (ytId) {
             const currentOrigin = (window.location && window.location.origin) || "http://localhost:3000";
@@ -468,7 +459,7 @@ async function triggerSearch(query) {
     }
 
     try {
-        const res = await fetch(`${TMDB_API}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
+        const res = await fetch(`${TMDB_API_BASE}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
         const data = await res.json();
         const results = document.getElementById("searchResults");
         if (!results) return;
@@ -486,7 +477,7 @@ async function triggerSearch(query) {
                 div.classList.add("search-item");
 
                 div.innerHTML = `
-                    <img src="${IMG + item.poster_path}" loading="lazy" />
+                    <img src="${TMDB_IMAGE_BASE + item.poster_path}" loading="lazy" />
                     <p style="flex: 1;">${item.title || item.name}</p>
                     <span style="font-size:11px;background:rgba(229,9,20,0.8);color:#fff;border-radius:4px;padding:2px 6px;">${(item.media_type || 'media').toUpperCase()}</span>
                 `;
