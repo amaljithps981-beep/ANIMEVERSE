@@ -14,7 +14,7 @@
  *    to speed up homepage rendering, with auto-regeneration when seeds change.
  */
 
-import { getPreferences, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, analyzeUserPreferences, db, logRecommendationMetric, auth } from './db.js';
+import { getPreferences, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, analyzeUserPreferences, db, logRecommendationMetric, auth, awaitWithTimeout } from './db.js';
 import { doc, setDoc, increment, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 async function enrichDeepRecommendation(item) {
@@ -199,7 +199,7 @@ export async function getExcludedTitles() {
         fetchDbToStorage("favorites").then(r => r || []),
         fetchDbToStorage("watched").then(r => r || []),
         fetchDbToStorage("myList").then(r => r || []),
-        getDocs(collection(db, "hiddenContent")).catch(() => null)
+        awaitWithTimeout(getDocs(collection(db, "hiddenContent")), 1500).catch(() => null)
     ]);
     
     const excludedSet = new Set();
@@ -705,8 +705,8 @@ export async function buildRecommendations() {
     let userFeedback = {};
     if (user) {
         try {
-            const feedbackSnap = await getDoc(doc(db, "recommendationFeedback", user.uid));
-            if (feedbackSnap.exists()) {
+            const feedbackSnap = await awaitWithTimeout(getDoc(doc(db, "recommendationFeedback", user.uid)), 1500);
+            if (feedbackSnap && feedbackSnap.exists()) {
                 userFeedback = feedbackSnap.data().clicks || {};
             }
         } catch (e) {
@@ -718,14 +718,14 @@ export async function buildRecommendations() {
     let hybridData = null;
     try {
         const fetchUid = user ? user.uid : "COLD_START";
-        let docSnap = await getDoc(doc(db, "hybridRecommendations", fetchUid));
+        let docSnap = await awaitWithTimeout(getDoc(doc(db, "hybridRecommendations", fetchUid)), 1500);
         
         // Fallback to COLD_START if user has no hybrid data yet
-        if (!docSnap.exists() && user) {
-            docSnap = await getDoc(doc(db, "hybridRecommendations", "COLD_START"));
+        if ((!docSnap || !docSnap.exists()) && user) {
+            docSnap = await awaitWithTimeout(getDoc(doc(db, "hybridRecommendations", "COLD_START")), 1500);
         }
 
-        if (docSnap.exists()) {
+        if (docSnap && docSnap.exists()) {
             hybridData = docSnap.data().categories;
         }
     } catch (e) {
@@ -766,14 +766,14 @@ export async function buildRecommendations() {
     // 1. Fetch Deep Learning Recommendations
     try {
         const fetchUid = user ? user.uid : "COLD_START";
-        const deepSnap = await getDoc(doc(db, "deepRecommendations", fetchUid));
+        const deepSnap = await awaitWithTimeout(getDoc(doc(db, "deepRecommendations", fetchUid)), 1500);
         let deepRecsData = null;
-        if (deepSnap.exists()) {
+        if (deepSnap && deepSnap.exists()) {
             deepRecsData = deepSnap.data().recommendations;
-        } else if (!user) {
+        } else if (!user || !deepSnap) {
             // Cold start fallback
-            const coldSnap = await getDoc(doc(db, "deepRecommendations", "COLD_START"));
-            if (coldSnap.exists()) {
+            const coldSnap = await awaitWithTimeout(getDoc(doc(db, "deepRecommendations", "COLD_START")), 1500);
+            if (coldSnap && coldSnap.exists()) {
                 deepRecsData = coldSnap.data().recommendations;
             }
         }

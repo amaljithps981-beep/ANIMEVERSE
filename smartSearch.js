@@ -505,11 +505,12 @@ async function logSearchStatus(query, success) {
  */
 export async function getDynamicSearchTags() {
     try {
-        const querySnapshot = await getDocs(collection(db, "searchAnalytics"));
+        const querySnapshot = await awaitWithTimeout(getDocs(collection(db, "searchAnalytics")), 1500);
         const impressionsMap = {};
         const clicksMap = {};
         
-        querySnapshot.forEach(docSnap => {
+        if (querySnapshot) {
+            querySnapshot.forEach(docSnap => {
             const data = docSnap.data();
             if (data.impressions) {
                 Object.entries(data.impressions).forEach(([query, count]) => {
@@ -521,7 +522,8 @@ export async function getDynamicSearchTags() {
                     clicksMap[query] = (clicksMap[query] || 0) + count;
                 });
             }
-        });
+            });
+        }
 
         const parseQueryKey = (key) => key.replace(/_/g, " ");
 

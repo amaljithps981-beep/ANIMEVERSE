@@ -1,4 +1,4 @@
-import { db, getAnalytics, syncStorageToDb, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations } from './db.js';
+import { db, getAnalytics, syncStorageToDb, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, awaitWithTimeout } from './db.js';
 import { doc, setDoc, getDoc, serverTimestamp, increment, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { fetchSimilarFromTitle, getExcludedTitles } from './recommendations.js';
 import { performSmartSearch } from './smartSearch.js';
@@ -692,14 +692,16 @@ export async function fetchChatSessions(user) {
             collection(db, "chatHistory", user.uid, "sessions"),
             orderBy("lastUpdated", "desc")
         );
-        const snap = await getDocs(q);
+        const snap = await awaitWithTimeout(getDocs(q), 1500);
         const sessions = [];
-        snap.forEach(docSnap => {
-            sessions.push({
-                id: docSnap.id,
-                ...docSnap.data()
+        if (snap) {
+            snap.forEach(docSnap => {
+                sessions.push({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                });
             });
-        });
+        }
         return sessions;
     } catch (e) {
         console.warn("[AI Engine] Failed to fetch sessions:", e);
@@ -714,8 +716,8 @@ export async function fetchSessionMessages(user, sessionId) {
     if (!user || !sessionId) return [];
     try {
         const sessionRef = doc(db, "chatHistory", user.uid, "sessions", sessionId);
-        const docSnap = await getDoc(sessionRef);
-        if (docSnap.exists()) {
+        const docSnap = await awaitWithTimeout(getDoc(sessionRef), 1500);
+        if (docSnap && docSnap.exists()) {
             return docSnap.data().messages || [];
         }
     } catch (e) {

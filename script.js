@@ -1096,20 +1096,22 @@ loadMoreBtn.addEventListener(
 // ======================
 async function loadAdminManagedContent() {
     try {
-        const hiddenSnap = await getDocs(collection(db, "hiddenContent"));
-        hiddenSnap.forEach(doc => {
-            const data = doc.data();
-            if (data.title) _hiddenContentSet.add(data.title.toLowerCase().trim());
-            if (data.id) {
-                const key = data.mediaType === 'Anime' ? `anime_${data.id}` : `tmdb_${data.id}`;
-                _hiddenContentSet.add(key);
-            }
-        });
+        const hiddenSnap = await awaitWithTimeout(getDocs(collection(db, "hiddenContent")), 1500);
+        if (hiddenSnap) {
+            hiddenSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.title) _hiddenContentSet.add(data.title.toLowerCase().trim());
+                if (data.id) {
+                    const key = data.mediaType === 'Anime' ? `anime_${data.id}` : `tmdb_${data.id}`;
+                    _hiddenContentSet.add(key);
+                }
+            });
+        }
 
-        const featuredSnap = await getDocs(collection(db, "featuredContent"));
+        const featuredSnap = await awaitWithTimeout(getDocs(collection(db, "featuredContent")), 1500);
         const featuredContainer = document.getElementById("featuredContainer");
         const featuredSection = document.getElementById("featuredSection");
-        if (featuredContainer && featuredSection && !featuredSnap.empty) {
+        if (featuredContainer && featuredSection && featuredSnap && !featuredSnap.empty) {
             const items = [];
             featuredSnap.forEach(doc => {
                 const data = doc.data();
