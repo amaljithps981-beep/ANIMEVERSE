@@ -1,3 +1,5 @@
+import { JIKAN_API_BASE } from './config.js';
+
 const animeDetails =
     document.getElementById("animeDetails");
 const recommendContainer =
@@ -24,7 +26,7 @@ const animeId =
 async function getAnimeDetails() {
 
     const response = await fetch(
-        `https://api.jikan.moe/v4/anime/${animeId}`
+        `${JIKAN_API_BASE}/anime/${animeId}`
     );
 
     const data = await response.json();

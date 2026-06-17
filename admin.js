@@ -1,6 +1,7 @@
 import { requireAdmin } from './guard.js';
 import { db } from './db.js';
 import { collection, getDocs, doc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { TMDB_API_BASE, TMDB_API_KEY, TMDB_IMAGE_BASE, JIKAN_API_BASE } from './config.js';
 
 // Tab navigation handler
 document.querySelectorAll(".admin-tab").forEach(tab => {
@@ -14,9 +15,9 @@ document.querySelectorAll(".admin-tab").forEach(tab => {
     });
 });
 
-const TMDB_API = "https://api.themoviedb.org/3";
-const API_KEY  = "c2772546356cffa3fb0504e91da76541";
-const IMG      = "https://image.tmdb.org/t/p/w500";
+const TMDB_API = TMDB_API_BASE;
+const API_KEY  = TMDB_API_KEY;
+const IMG      = TMDB_IMAGE_BASE;
 
 let charts = {};
 

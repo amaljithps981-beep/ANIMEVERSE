@@ -2,9 +2,7 @@ import { db, getAnalytics, syncStorageToDb, fetchDbToStorage, fetchCachedRecomme
 import { doc, setDoc, getDoc, serverTimestamp, increment, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { fetchSimilarFromTitle, getExcludedTitles } from './recommendations.js';
 import { performSmartSearch } from './smartSearch.js';
-
-const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_KEY = "c2772546356cffa3fb0504e91da76541";
+import { TMDB_API_BASE, TMDB_API_KEY, JIKAN_API_BASE, TMDB_GENRES, JIKAN_GENRES } from './config.js';
 
 /**
  * Normalizes list retrieval from both local storage and Firestore.
@@ -88,7 +86,7 @@ function unifyMediaCard(item) {
  */
 async function fetchTrendingItems() {
     try {
-        const res = await fetch(`${TMDB_API}/trending/all/week?api_key=${TMDB_KEY}`).then(r => r.json());
+        const res = await fetch(`${TMDB_API_BASE}/trending/all/week?api_key=${TMDB_API_KEY}`).then(r => r.json());
         return res.results || [];
     } catch (e) {
         console.error("[AI Engine] fetchTrendingItems error:", e);
@@ -107,7 +105,7 @@ async function fetchByGenre(genreName, isShorter) {
     };
     const gid = genresMap[genreName];
     try {
-        let url = `https://api.jikan.moe/v4/anime?genres=${gid}&order_by=score&sort=desc`;
+        let url = `${JIKAN_API_BASE}/anime?genres=${gid}&order_by=score&sort=desc`;
         if (isShorter) {
             url += `&type=movie`;
         }
@@ -137,7 +135,7 @@ async function fetchTmdbByGenre(genreName, type = 'movie') {
     const gid = type === 'movie' ? tmdbGenres[genreName] : tvGenres[genreName];
     if (!gid) return [];
     try {
-        const url = `${TMDB_API}/discover/${type}?api_key=${TMDB_KEY}&with_genres=${gid}&sort_by=popularity.desc`;
+        const url = `${TMDB_API_BASE}/discover/${type}?api_key=${TMDB_API_KEY}&with_genres=${gid}&sort_by=popularity.desc`;
         const res = await fetch(url).then(r => r.json());
         return (res.results || []).map(item => ({ ...item, mediaType: type }));
     } catch (e) {
@@ -151,7 +149,7 @@ async function fetchTmdbByGenre(genreName, type = 'movie') {
  */
 async function searchTmdbMulti(query) {
     try {
-        const res = await fetch(`${TMDB_API}/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`).then(r => r.json());
+        const res = await fetch(`${TMDB_API_BASE}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`).then(r => r.json());
         return res.results || [];
     } catch (e) {
         console.error("[AI Engine] searchTmdbMulti error:", e);
