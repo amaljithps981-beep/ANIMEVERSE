@@ -372,7 +372,7 @@ async function loadOverviewData() {
         }
 
         // Initialize platform charts
-        initializeCharts(growthData, sortedGenres, totalFavorites, totalWatched, totalHistory, totalMyList, watchedAnime, watchedMovie, watchedTV, totalUsers);
+        await initializeCharts(growthData, sortedGenres, totalFavorites, totalWatched, totalHistory, totalMyList, watchedAnime, watchedMovie, watchedTV, totalUsers);
 
     } catch (e) {
         console.error("Overview data fetch error:", e);
@@ -380,7 +380,7 @@ async function loadOverviewData() {
 }
 
 // PART E: Charts Generator
-function initializeCharts(growthData, genreData, totalFavorites, totalWatched, totalHistory, totalMyList, watchedAnime, watchedMovie, watchedTV, totalUsers) {
+async function initializeCharts(growthData, genreData, totalFavorites, totalWatched, totalHistory, totalMyList, watchedAnime, watchedMovie, watchedTV, totalUsers) {
     // 1. User Growth Chart
     const growthCtx = document.getElementById('userGrowthChart').getContext('2d');
     const sortedDates = Object.keys(growthData).sort();

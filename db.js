@@ -501,16 +501,6 @@ export async function fetchCachedRecommendations() {
         }
 
         const recsRef = doc(db, "recommendations", user.uid);
-        const snap = await awaitWithTimeout(getDoc(recsRef));
-        if (snap?.exists()) {
-            recsCache[user.uid] = snap.data();
-            return recsCache[user.uid];
-        }
-    } catch (e) {
-        console.error("fetchCachedRecommendations failed:", e);
-    }
-    return null;
-}
         const snap = await awaitWithTimeout(getDoc(recsRef), 1500);
         if (snap && snap.exists()) {
             const data = snap.data();
@@ -524,4 +514,4 @@ export async function fetchCachedRecommendations() {
     }
 }
 
-export { auth, db, doc, setDoc, getDoc, updateDoc };
+export { auth, doc, setDoc, getDoc, updateDoc };
