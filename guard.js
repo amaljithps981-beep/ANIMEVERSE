@@ -1,16 +1,9 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { FIREBASE_CONFIG } from './config.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCZWdwzHo5IRGWQHs6IzsFtXdoLm10gmII",
-  authDomain: "animeverse-4c635.firebaseapp.com",
-  projectId: "animeverse-4c635",
-  storageBucket: "animeverse-4c635.firebasestorage.app",
-  messagingSenderId: "200334860457",
-  appId: "1:200334860457:web:d493dd34a5f541d9e8c9b8",
-  measurementId: "G-8VMLXQFDWY"
-};
+const firebaseConfig = FIREBASE_CONFIG;
 
 const app  = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);

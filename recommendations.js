@@ -14,6 +14,7 @@
  *    to speed up homepage rendering, with auto-regeneration when seeds change.
  */
 
+import { TMDB_API_BASE, TMDB_API_KEY, TMDB_IMAGE_BASE } from './config.js';
 import { getPreferences, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, analyzeUserPreferences, db, logRecommendationMetric, auth, awaitWithTimeout } from './db.js';
 import { doc, setDoc, increment, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -152,9 +153,9 @@ async function trackRecommendationClick(item) {
     }
 }
 
-const TMDB  = "https://api.themoviedb.org/3";
-const KEY   = "c2772546356cffa3fb0504e91da76541";
-const IMG   = "https://image.tmdb.org/t/p/w500";
+const TMDB  = TMDB_API_BASE;
+const KEY   = TMDB_API_KEY;
+const IMG   = TMDB_IMAGE_BASE;
 
 // ── In-Memory API Cache to Avoid Duplicate Hits ─────────────
 const _cache = new Map();

@@ -1,8 +1,9 @@
 import { syncStorageToDb, fetchDbToStorage, trackUserActivity } from './db.js';
 import { analytics } from './analytics.js';
-const API_KEY = "c2772546356cffa3fb0504e91da76541";
-const TMDB_API = "https://api.themoviedb.org/3";
-const IMG = "https://image.tmdb.org/t/p/w500";
+import { TMDB_API_BASE, TMDB_API_KEY, TMDB_IMAGE_BASE } from './config.js';
+const API_KEY = TMDB_API_KEY;
+const TMDB_API = TMDB_API_BASE;
+const IMG = TMDB_IMAGE_BASE;
 
 // ============================================================
 // GUARD: Redirect if no selectedItem is present

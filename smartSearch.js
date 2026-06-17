@@ -1,10 +1,11 @@
 import { db, doc, setDoc, awaitWithTimeout, syncStorageToDb, getPreferences } from './db.js';
 import { increment, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getExcludedTitles } from './recommendations.js';
+import { TMDB_API_BASE, TMDB_API_KEY, TMDB_IMAGE_BASE } from './config.js';
 
-const TMDB_API = "https://api.themoviedb.org/3";
-const TMDB_KEY = "c2772546356cffa3fb0504e91da76541";
-const IMG_PATH = "https://image.tmdb.org/t/p/w500";
+const TMDB_API = TMDB_API_BASE;
+const TMDB_KEY = TMDB_API_KEY;
+const IMG_PATH = TMDB_IMAGE_BASE;
 
 // Sibling/Associated Genre Mappings
 const GENRE_MAPS = {
