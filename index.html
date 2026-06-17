@@ -39,7 +39,6 @@
         <li><a href="watched.html">Watched</a></li>
         <li><a href="mylist.html">My List</a></li>
         <li><a href="profile.html">Profile</a></li>
-        <li><a href="chat.html" style="color: #e50914; font-weight: bold;">🤖 AI Chat</a></li>
         <li id="adminNavLink" style="display:none;"><a href="admin.html" style="color: var(--accent); font-weight: bold;">🛡️ Admin</a></li>
         <li class="mobile-only install-btn" style="display:none"><a href="#"><span style="margin-right:8px">📱</span>Install App</a></li>
         <li class="mobile-only"><a href="#" id="mobileLogoutBtn" class="logout-btn">Logout</a></li>
@@ -431,7 +430,38 @@
 <!-- BACK TO TOP BUTTON -->
 <button id="backToTopBtn" class="back-to-top hidden" title="Back to Top">▲</button>
 
+<!-- CHAT OVERLAY -->
+<div id="chatOverlay" class="chat-overlay hidden"></div>
 
+<!-- CHAT BUTTON -->
+<div id="chatToggle" class="chat-toggle">
+    💬
+</div>
+
+<!-- CHATBOT -->
+<div class="chatbot hidden" id="chatbot">
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <span class="status-dot"></span>
+            AI Assistant
+        </div>
+        <span id="closeChat" class="close-icon">✖</span>
+    </div>
+    <div id="chatBox" class="chat-box">
+        <div class="message ai-message">
+            Hi! I'm your AnimeVerse AI Assistant ✨
+        </div>
+    </div>
+    <div class="chat-input-area">
+        <input 
+            type="text"
+            id="chatInput"
+            placeholder="Ask anything..."
+            autocomplete="off"
+        >
+        <button id="chatBtn" class="chat-btn">➤</button>
+    </div>
+</div>
 
 <script type="module" src="script.js"></script>
 <script type="module" src="firebase.js"></script>

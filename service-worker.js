@@ -1,4 +1,4 @@
-const CACHE_NAME = 'animeverse-precache-v5';
+const CACHE_NAME = 'animeverse-precache-v6';
 const RUNTIME_CACHE = 'animeverse-runtime-cache-v1';
 
 const PRECACHE_URLS = [
