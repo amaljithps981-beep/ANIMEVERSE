@@ -937,7 +937,7 @@ let popupSessionId = Date.now().toString();
 let popupContext = { lastGenre: null, lastTitle: null, modifier: null };
 
 function toggleChat() {
-    chatbot.classList.toggle("hidden");
+    if (chatbot) chatbot.classList.toggle("hidden");
     if (chatOverlay) chatOverlay.classList.toggle("hidden");
 }
 
@@ -991,8 +991,10 @@ function appendMessage(text, sender, cards = null) {
         </div>
     `;
 
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    if (chatBox) {
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 }
 
 function appendTypingIndicator() {
@@ -1000,8 +1002,10 @@ function appendTypingIndicator() {
     msg.classList.add("message", "ai-message");
     msg.id = "typingIndicator";
     msg.innerHTML = "<em>typing...</em>";
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    if (chatBox) {
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 }
 
 function removeTypingIndicator() {
