@@ -394,7 +394,7 @@ export async function analyzeUserPreferences() {
 
         // Write to Firestore
         const prefRef = doc(db, "userPreferences", user.uid);
-        await setDoc(prefRef, userPreferences, { merge: true });
+        await awaitWithTimeout(setDoc(prefRef, userPreferences, { merge: true }), 1500);
 
         // Cache in-memory
         userPrefsCache[user.uid] = userPreferences;

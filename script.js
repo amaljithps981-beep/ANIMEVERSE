@@ -1021,16 +1021,22 @@ async function handleChatSubmit() {
     appendMessage(query, "user");
     appendTypingIndicator();
 
-    const currentUser = await getActiveUser();
+    try {
+        const currentUser = await getActiveUser();
 
-    // Process intent and generate unified response
-    const response = await processAiQuery(query, currentUser, popupContext);
+        // Process intent and generate unified response
+        const response = await processAiQuery(query, currentUser, popupContext);
 
-    removeTypingIndicator();
-    appendMessage(response.text, "ai", response.cards);
+        removeTypingIndicator();
+        appendMessage(response.text, "ai", response.cards);
 
-    // Save to Firestore
-    await saveToHistory(currentUser, popupSessionId, query, response.text);
+        // Save to Firestore
+        await saveToHistory(currentUser, popupSessionId, query, response.text, response.cards);
+    } catch (err) {
+        console.error("[Chat] Error processing query:", err);
+        removeTypingIndicator();
+        appendMessage("Sorry, I encountered an error. Please try again.", "ai");
+    }
 }
 
 if (chatBtn) chatBtn.addEventListener("click", handleChatSubmit);

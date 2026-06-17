@@ -344,7 +344,9 @@ export async function processAiQuery(query, user, contextState = {}) {
     }
 
     // 5. PROFILE STATISTICS
-    if (q.includes("how many") || q.includes("stats") || q.includes("profile") || q.includes("statistics") || q.includes("streak") || q.includes("average rating") || q.includes("my rating")) {
+    const isProfileStatsQuery = (q.includes("how many") && (q.includes("i ") || q.includes("my ") || q.includes(" watched") || q.includes(" favorites") || q.includes(" list"))) ||
+                                q.includes("stats") || q.includes("profile") || q.includes("statistics") || q.includes("streak") || q.includes("average rating") || q.includes("my rating");
+    if (isProfileStatsQuery) {
         trackAnalytics("intent", "stats");
         const stats = await getAnalytics();
         const history = await getList("watchHistory", user);
@@ -646,12 +648,12 @@ export async function saveToHistory(user, sessionId, userMsg, aiMsg, aiCards = n
         const sessionRef = doc(db, "chatHistory", user.uid, "sessions", sessionId);
         
         // Ensure parent document exists
-        await setDoc(doc(db, "chatHistory", user.uid), { lastActive: serverTimestamp() }, { merge: true });
+        await awaitWithTimeout(setDoc(doc(db, "chatHistory", user.uid), { lastActive: serverTimestamp() }, { merge: true }), 1500);
 
         // Add to messages array
-        const sessDoc = await getDoc(sessionRef);
+        const sessDoc = await awaitWithTimeout(getDoc(sessionRef), 1500);
         let messages = [];
-        if (sessDoc.exists()) {
+        if (sessDoc && sessDoc.exists()) {
             messages = sessDoc.data().messages || [];
         }
         messages.push({ role: 'user', text: userMsg, timestamp: Date.now() });
@@ -662,7 +664,7 @@ export async function saveToHistory(user, sessionId, userMsg, aiMsg, aiCards = n
         }
         messages.push(aiMessageEntry);
         
-        await setDoc(sessionRef, { messages, lastUpdated: serverTimestamp() }, { merge: true });
+        await awaitWithTimeout(setDoc(sessionRef, { messages, lastUpdated: serverTimestamp() }, { merge: true }), 1500);
     } catch (e) {
         console.warn("[AI Engine] Failed to save history:", e);
     }
@@ -686,7 +688,7 @@ export async function trackAnalytics(type, value) {
             const safeTitle = value.replace(/[\.\#\$\/\[\]]/g, "_");
             updates[`clickedTitles.${safeTitle}`] = increment(1);
         }
-        await setDoc(ref, updates, { merge: true });
+        await awaitWithTimeout(setDoc(ref, updates, { merge: true }), 1500);
     } catch (e) {
         console.warn("[AI Engine] Failed to track analytics:", e);
     }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'animeverse-precache-v6';
+const CACHE_NAME = 'animeverse-precache-v7';
 const RUNTIME_CACHE = 'animeverse-runtime-cache-v1';
 
 const PRECACHE_URLS = [
@@ -25,6 +25,9 @@ const PRECACHE_URLS = [
   './guard.js',
   './api.js',
   './recommendations.js',
+  './smartSearch.js',
+  './trendPredictor.js',
+  './analytics.js',
   './offline.html',
   './icon-192.png',
   './icon-512.png',

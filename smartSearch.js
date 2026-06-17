@@ -12,6 +12,11 @@ const GENRE_MAPS = {
     'horror': 27, 'mystery': 9648, 'romance': 10749, 'sci-fi': 878, 'thriller': 53,
     'animation': 16, 'family': 10751
 };
+const TV_GENRE_MAPS = {
+    'action': 10759, 'adventure': 10759, 'comedy': 35, 'drama': 18, 'fantasy': 10765,
+    'horror': 9648, 'mystery': 9648, 'romance': 10766, 'sci-fi': 10765, 'thriller': 53,
+    'animation': 16, 'family': 10751
+};
 const JIKAN_GENRE_MAPS = {
     'action': 1, 'adventure': 2, 'comedy': 4, 'fantasy': 10, 'horror': 14, 
     'romance': 22, 'sci-fi': 24, 'dark': 14, 'slice of life': 36, 'sports': 30,
@@ -47,15 +52,26 @@ export function parseNlQuery(queryText) {
             break;
         }
     }
-    // Sibling aliases
-    if (q.includes("dark")) {
-        genre = "horror";
-    }
-    if (q.includes("funny")) {
-        genre = "comedy";
-    }
-    if (q.includes("family")) {
-        genre = "family";
+    // Sibling and colloquial aliases
+    const colloquialGenreKeywords = {
+        'romance': ['love', 'romantic', 'couple', 'marriage', 'girlfriend', 'boyfriend', 'heart'],
+        'comedy': ['funny', 'hilarious', 'laugh', 'humor', 'joke'],
+        'horror': ['scary', 'spooky', 'ghost', 'spirit', 'demon', 'zombie', 'dark'],
+        'sci-fi': ['scifi', 'science fiction', 'space', 'robot', 'future', 'futuristic'],
+        'slice of life': ['daily life', 'school life', 'relaxing', 'calm'],
+        'action': ['fight', 'war', 'battle', 'combat', 'sword'],
+        'adventure': ['journey', 'quest', 'explore', 'world'],
+        'fantasy': ['magic', 'supernatural', 'isekai', 'another world'],
+        'mystery': ['detective', 'puzzle', 'solve', 'crime'],
+        'drama': ['sad', 'emotional', 'tear', 'cry'],
+        'thriller': ['suspense', 'psychological', 'mind'],
+        'sports': ['game', 'gaming', 'athlete', 'soccer', 'basketball', 'baseball']
+    };
+    for (const [g, keywords] of Object.entries(colloquialGenreKeywords)) {
+        if (keywords.some(kw => q.includes(kw))) {
+            genre = g;
+            break;
+        }
     }
 
     // 2. Extract Media Type
@@ -198,7 +214,7 @@ export async function performSmartSearch(queryText, user) {
                 }));
             } else {
                 const type = parsed.mediaType || 'movie';
-                const gid = GENRE_MAPS[parsed.genre];
+                const gid = type === 'movie' ? GENRE_MAPS[parsed.genre] : TV_GENRE_MAPS[parsed.genre];
                 let url = `${TMDB_API}/discover/${type}?api_key=${TMDB_KEY}&with_genres=${gid}`;
                 if (parsed.best) url += `&sort_by=vote_average.desc&vote_count.gte=500`;
                 else url += `&sort_by=popularity.desc`;
