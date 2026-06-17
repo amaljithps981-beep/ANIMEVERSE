@@ -237,6 +237,7 @@ async function getPersonalizedRecommendations(user) {
  * Main query and intent parser for AnimeVerse AI.
  */
 export async function processAiQuery(query, user, contextState = {}) {
+    console.log("Message received");
     console.log("[Chat] Message received:", query);
     
     if (!query || typeof query !== 'string') {
@@ -260,6 +261,7 @@ export async function processAiQuery(query, user, contextState = {}) {
         };
     }
 
+    console.log("Intent detected");
     const q = query.toLowerCase().trim();
     const exclusions = await getExcludedTitles().catch(() => new Set());
 
@@ -588,7 +590,7 @@ export async function processAiQuery(query, user, contextState = {}) {
         } catch (e) {
             console.error("[Chat] Trending fallback failed:", e);
             return {
-                text: "Sorry, the recommendation service is temporarily unavailable. Please try again in a moment.",
+                text: "Sorry, recommendation service is unavailable.",
                 cards: []
             };
         }

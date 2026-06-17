@@ -14,7 +14,7 @@
  *    to speed up homepage rendering, with auto-regeneration when seeds change.
  */
 
-import { getPreferences, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, analyzeUserPreferences, db, logRecommendationMetric } from './db.js';
+import { getPreferences, fetchDbToStorage, fetchCachedRecommendations, saveRecommendations, analyzeUserPreferences, db, logRecommendationMetric, auth } from './db.js';
 import { doc, setDoc, increment, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 async function enrichDeepRecommendation(item) {
@@ -699,7 +699,6 @@ export async function buildRecommendations() {
     }
 
     // ── PHASE 5: HYBRID RECOMMENDATION ENGINE UI BINDING ──
-    const auth = getAuth();
     const user = auth.currentUser;
     
     // 1. Fetch User Feedback for Real-Time Adjustment
@@ -759,8 +758,6 @@ export async function buildRecommendations() {
     const deepContainer = document.getElementById("deepRecommendationsContainer");
     const bestMatchSection = document.getElementById("hybridBestMatchSection");
     const bestMatchContainer = document.getElementById("hybridBestMatchContainer");
-    const recSection = document.getElementById("recommendedSection");
-    const recContainer = document.getElementById("recommendedContainer");
     
     let deepSuccess = false;
     let hybridSuccess = false;

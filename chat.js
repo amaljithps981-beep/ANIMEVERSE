@@ -70,6 +70,7 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
+    console.log("Message received");
     console.log("[Chat UI] sendMessage called with text:", text);
 
     // Clear input
@@ -88,6 +89,7 @@ async function sendMessage() {
         // Process intent and generate unified response
         console.log("[Chat UI] Calling processAiQuery...");
         const response = await processAiQuery(text, currentUser, contextState);
+        console.log("Response generated");
         console.log("[Chat UI] Response received:", response);
 
         // Remove Typing Indicator
@@ -100,10 +102,10 @@ async function sendMessage() {
         // Validate response
         if (!response || typeof response !== 'object') {
             console.error("[Chat UI] Invalid response object:", response);
-            appendMessage('ai', 'Sorry, something went wrong. Please try again.');
+            appendMessage('ai', 'Sorry, recommendation service is unavailable.');
         } else if (!response.text) {
             console.error("[Chat UI] Response missing text property:", response);
-            appendMessage('ai', 'Sorry, I couldn\'t generate a response. Please try again.');
+            appendMessage('ai', 'Sorry, recommendation service is unavailable.');
         } else {
             // Render AI Message
             console.log("[Chat UI] Rendering AI message with", response.cards ? response.cards.length : 0, "cards");
@@ -121,7 +123,7 @@ async function sendMessage() {
         console.error("[Chat UI] sendMessage error:", error);
         const typingEl = document.getElementById(typingId);
         if (typingEl) typingEl.remove();
-        appendMessage('ai', 'Sorry, something went wrong. Please try again.');
+        appendMessage('ai', 'Sorry, recommendation service is unavailable.');
     }
 }
 
