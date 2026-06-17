@@ -101,7 +101,7 @@ async function fetchByGenre(genreName, isShorter) {
     const genresMap = {
         'action': 1, 'adventure': 2, 'comedy': 4, 'fantasy': 10, 'horror': 14, 
         'romance': 22, 'sci-fi': 24, 'dark': 14, 'slice of life': 36, 'sports': 30,
-        'mystery': 7, 'drama': 8
+        'mystery': 7, 'drama': 8, 'thriller': 41, 'animation': 16
     };
     const gid = genresMap[genreName];
     try {
@@ -461,15 +461,25 @@ export async function processAiQuery(query, user, contextState = {}) {
     }
 
     // 8. GENRE REQUESTS (e.g. "Recommend an action anime", "suggest a horror movie")
-    const genresMap = {
-        'action': 1, 'adventure': 2, 'comedy': 4, 'fantasy': 10, 'horror': 14, 
-        'romance': 22, 'sci-fi': 24, 'dark': 14, 'slice of life': 36, 'sports': 30,
-        'mystery': 7, 'drama': 8, 'thriller': 53, 'animation': 16
+    const genreKeywords = {
+        'romance': ['romance', 'love', 'romantic', 'couple', 'marriage', 'girlfriend', 'boyfriend', 'heart'],
+        'comedy': ['comedy', 'funny', 'hilarious', 'laugh', 'humor', 'joke'],
+        'horror': ['horror', 'scary', 'spooky', 'ghost', 'spirit', 'demon', 'zombie'],
+        'sci-fi': ['sci-fi', 'scifi', 'science fiction', 'space', 'robot', 'future', 'futuristic'],
+        'slice of life': ['slice of life', 'daily life', 'school life', 'relaxing', 'calm'],
+        'action': ['action', 'fight', 'war', 'battle', 'combat', 'sword'],
+        'adventure': ['adventure', 'journey', 'quest', 'explore', 'world'],
+        'fantasy': ['fantasy', 'magic', 'supernatural', 'isekai', 'another world'],
+        'mystery': ['mystery', 'detective', 'puzzle', 'solve', 'crime'],
+        'drama': ['drama', 'sad', 'emotional', 'tear', 'cry'],
+        'thriller': ['thriller', 'suspense', 'psychological', 'mind'],
+        'sports': ['sports', 'game', 'gaming', 'athlete', 'soccer', 'basketball', 'baseball']
     };
+    
     let foundGenre = null;
-    for (let g of Object.keys(genresMap)) {
-        if (q.includes(g)) {
-            foundGenre = g;
+    for (let [genre, keywords] of Object.entries(genreKeywords)) {
+        if (keywords.some(kw => q.includes(kw))) {
+            foundGenre = genre;
             break;
         }
     }
