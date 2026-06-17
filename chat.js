@@ -70,34 +70,64 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
+    console.log("[Chat UI] sendMessage called with text:", text);
+
     // Clear input
     chatInput.value = '';
     chatInput.style.height = 'auto';
 
     // Render User Message
+    console.log("[Chat UI] Rendering user message");
     appendMessage('user', text);
 
     // Render Typing Indicator
+    console.log("[Chat UI] Showing typing indicator");
     const typingId = appendTypingIndicator();
 
-    // Process intent and generate unified response
-    const response = await processAiQuery(text, currentUser, contextState);
+    try {
+        // Process intent and generate unified response
+        console.log("[Chat UI] Calling processAiQuery...");
+        const response = await processAiQuery(text, currentUser, contextState);
+        console.log("[Chat UI] Response received:", response);
 
-    // Remove Typing Indicator
-    const typingEl = document.getElementById(typingId);
-    if (typingEl) typingEl.remove();
+        // Remove Typing Indicator
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) {
+            console.log("[Chat UI] Removing typing indicator");
+            typingEl.remove();
+        }
 
-    // Render AI Message
-    appendMessage('ai', response.text, response.cards);
+        // Validate response
+        if (!response || typeof response !== 'object') {
+            console.error("[Chat UI] Invalid response object:", response);
+            appendMessage('ai', 'Sorry, something went wrong. Please try again.');
+        } else if (!response.text) {
+            console.error("[Chat UI] Response missing text property:", response);
+            appendMessage('ai', 'Sorry, I couldn\'t generate a response. Please try again.');
+        } else {
+            // Render AI Message
+            console.log("[Chat UI] Rendering AI message with", response.cards ? response.cards.length : 0, "cards");
+            appendMessage('ai', response.text, response.cards);
+        }
 
-    // Save to Firestore
-    await saveToHistory(currentUser, currentSessionId, text, response.text, response.cards);
-    
-    // Refresh sidebar list to include the new/updated session title
-    await loadChatHistory();
+        // Save to Firestore
+        if (response && response.text) {
+            await saveToHistory(currentUser, currentSessionId, text, response.text, response.cards);
+        }
+        
+        // Refresh sidebar list to include the new/updated session title
+        await loadChatHistory();
+    } catch (error) {
+        console.error("[Chat UI] sendMessage error:", error);
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+        appendMessage('ai', 'Sorry, something went wrong. Please try again.');
+    }
 }
 
 function appendMessage(role, text, cards = null, scroll = true) {
+    console.log(`[Chat UI] Appending ${role} message:`, text.substring(0, 50) + "...");
+    
     const wrapper = document.createElement('div');
     wrapper.className = `message-wrapper ${role}`;
 
