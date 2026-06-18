@@ -1124,15 +1124,15 @@ if (watchedBtn) {
             watched = watched.filter(i => i && (i.title || '').toLowerCase().trim() !== (selectedItem.title || '').toLowerCase().trim());
             watchedBtn.innerText = "✅ Mark as Watched";
             console.log("Removing from Watched. Syncing payload:", watched);
-            await syncStorageToDb("watched", watched);
+            syncStorageToDb("watched", watched);
             alert("Removed from Watched ❌");
         } else {
             watched = watched.filter(i => i && (i.title || '').toLowerCase().trim() !== (selectedItem.title || '').toLowerCase().trim());
             watched.unshift(selectedItem);
             watchedBtn.innerText = "❌ Remove from Watched";
             console.log("Adding to Watched. Syncing payload:", watched);
-            await trackUserActivity(selectedItem, 'watched');
-            await syncStorageToDb("watched", watched);
+            trackUserActivity(selectedItem, 'watched');
+            syncStorageToDb("watched", watched);
             alert("Added to Watched ✅");
         }
     });
@@ -1170,15 +1170,15 @@ if (myListBtn) {
             myList = myList.filter(i => i && (i.title || '').toLowerCase().trim() !== (selectedItem.title || '').toLowerCase().trim());
             myListBtn.innerText = "➕ My List";
             console.log("Removing from My List. Syncing payload:", myList);
-            await syncStorageToDb("myList", myList);
+            syncStorageToDb("myList", myList);
             alert("Removed from My List ➖");
         } else {
             myList = myList.filter(i => i && (i.title || '').toLowerCase().trim() !== (selectedItem.title || '').toLowerCase().trim());
             myList.unshift(selectedItem);
             myListBtn.innerText = "➖ Remove from My List";
             console.log("Adding to My List. Syncing payload:", myList);
-            await trackUserActivity(selectedItem, 'mylist');
-            await syncStorageToDb("myList", myList);
+            trackUserActivity(selectedItem, 'mylist');
+            syncStorageToDb("myList", myList);
             alert("Added to My List ➕");
         }
     });
@@ -1216,15 +1216,15 @@ if (favoriteBtn) {
             favorites = favorites.filter(i => i && (i.title || '').toLowerCase().trim() !== (selectedItem.title || '').toLowerCase().trim());
             favoriteBtn.innerText = "❤️ Favorite";
             console.log("Removing from Favorites. Syncing payload:", favorites);
-            await syncStorageToDb("favorites", favorites);
+            syncStorageToDb("favorites", favorites);
             alert("Removed from Favorites 💔");
         } else {
             favorites = favorites.filter(i => i && (i.title || '').toLowerCase().trim() !== (selectedItem.title || '').toLowerCase().trim());
             favorites.unshift(selectedItem);
             favoriteBtn.innerText = "💔 Remove Favorite";
             console.log("Adding to Favorites. Syncing payload:", favorites);
-            await trackUserActivity(selectedItem, 'favorite');
-            await syncStorageToDb("favorites", favorites);
+            trackUserActivity(selectedItem, 'favorite');
+            syncStorageToDb("favorites", favorites);
             alert("Added to Favorites ❤️");
         }
     });
