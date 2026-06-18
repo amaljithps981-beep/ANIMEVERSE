@@ -195,14 +195,25 @@ const TV_GENRES = {
 };
 
 // ── Excluded Titles (Watched, Favorites, Continue Watching) ─
-export async function getExcludedTitles() {
-    const [favorites, watched, myList, hiddenSnap] = await Promise.all([
-        fetchDbToStorage("favorites").then(r => r || []),
-        fetchDbToStorage("watched").then(r => r || []),
-        fetchDbToStorage("myList").then(r => r || []),
-        awaitWithTimeout(getDocs(collection(db, "hiddenContent")), 1500).catch(() => null)
-    ]);
+export async function getExcludedTitles(preFetchedFav = null, preFetchedWatched = null, preFetchedMyList = null) {
+    const hiddenSnapPromise = awaitWithTimeout(getDocs(collection(db, "hiddenContent")), 1500).catch(() => null);
     
+    let favorites = preFetchedFav;
+    let watched = preFetchedWatched;
+    let myList = preFetchedMyList;
+
+    if (!favorites || !watched || !myList) {
+        const [f, w, m] = await Promise.all([
+            fetchDbToStorage("favorites").then(r => r || []),
+            fetchDbToStorage("watched").then(r => r || []),
+            fetchDbToStorage("myList").then(r => r || [])
+        ]);
+        if (!favorites) favorites = f;
+        if (!watched) watched = w;
+        if (!myList) myList = m;
+    }
+    
+    const hiddenSnap = await hiddenSnapPromise;
     const excludedSet = new Set();
     const allItems = [...favorites, ...watched, ...myList];
     
@@ -445,18 +456,26 @@ async function fetchAnimeRecommendations(history, favorites, watched, myList) {
 
 // ── Main Recommendation Engine Builder ──────────────────────
 export async function buildRecommendations() {
-    // 1. Get user data in parallel
-    const [history, favorites, watched, myList, userPrefs] = await Promise.all([
-        fetchDbToStorage("watchHistory").then(r => r || []),
-        fetchDbToStorage("favorites").then(r => r || []),
-        fetchDbToStorage("watched").then(r => r || []),
-        fetchDbToStorage("myList").then(r => r || []),
-        analyzeUserPreferences()
-    ]);
-    const excludedSet = await getExcludedTitles();
+    // 1. Get user data, cached recommendations, and preferences in parallel
+    const historyPromise = fetchDbToStorage("watchHistory").then(r => r || []);
+    const favoritesPromise = fetchDbToStorage("favorites").then(r => r || []);
+    const watchedPromise = fetchDbToStorage("watched").then(r => r || []);
+    const myListPromise = fetchDbToStorage("myList").then(r => r || []);
+    const cachedPromise = fetchCachedRecommendations();
 
-    // 2. Fetch Cached recommendations
-    const cached = await fetchCachedRecommendations();
+    const [history, favorites, watched, myList, cached] = await Promise.all([
+        historyPromise,
+        favoritesPromise,
+        watchedPromise,
+        myListPromise,
+        cachedPromise
+    ]);
+
+    // Compute preferences and excluded titles in parallel using the pre-fetched lists
+    const [userPrefs, excludedSet] = await Promise.all([
+        analyzeUserPreferences(history, favorites, watched, myList),
+        getExcludedTitles(favorites, watched, myList)
+    ]);
 
     const seedFav = favorites.length > 0 ? (favorites[0].title || favorites[0].name) : '';
     

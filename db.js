@@ -328,15 +328,15 @@ export async function trackUserActivity(item, actionType) {
 }
 
 // AI Phase 1: Smart Recommendation Engine - Preferences Analyzer
-export async function analyzeUserPreferences() {
+export async function analyzeUserPreferences(preFetchedHistory = null, preFetchedFav = null, preFetchedWatched = null, preFetchedMyList = null) {
     try {
         const user = await getActiveUser();
         if (!user) return null;
 
-        const history   = (await getUserData("watchHistory")) || [];
-        const favorites = (await getUserData("favorites"))    || [];
-        const watched   = (await getUserData("watched"))      || [];
-        const myList    = (await getUserData("myList"))       || [];
+        const history   = preFetchedHistory || (await getUserData("watchHistory")) || [];
+        const favorites = preFetchedFav     || (await getUserData("favorites"))    || [];
+        const watched   = preFetchedWatched || (await getUserData("watched"))      || [];
+        const myList    = preFetchedMyList  || (await getUserData("myList"))       || [];
 
         const allItems = [...history, ...favorites, ...watched, ...myList];
         

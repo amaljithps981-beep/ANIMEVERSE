@@ -5,6 +5,120 @@ const API_KEY = TMDB_API_KEY;
 const TMDB_API = TMDB_API_BASE;
 const IMG = TMDB_IMAGE_BASE;
 
+const _apiCache = new Map();
+
+async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (err) {
+        clearTimeout(id);
+        throw err;
+    }
+}
+
+async function fetchCachedJson(url, ttl = 86400000) { // Default 24 hours
+    if (_apiCache.has(url)) return _apiCache.get(url);
+
+    const cacheKey = `api_cache_${url}`;
+    try {
+        const cachedItem = localStorage.getItem(cacheKey);
+        if (cachedItem) {
+            const parsed = JSON.parse(cachedItem);
+            const now = Date.now();
+            if (now - parsed.timestamp < ttl) {
+                _apiCache.set(url, parsed.data);
+                return parsed.data;
+            }
+        }
+    } catch (e) {
+        console.warn("Error reading API cache from localStorage:", e);
+    }
+
+    try {
+        const res = await fetchWithTimeout(url, {}, 5000);
+        if (!res.ok) throw new Error(`Invalid response status: ${res.status}`);
+        const data = await res.json();
+        
+        _apiCache.set(url, data);
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: Date.now(),
+                data: data
+            }));
+        } catch (e) {
+            console.warn("Error writing API cache to localStorage:", e);
+        }
+        return data;
+    } catch (err) {
+        console.error("API error for url:", url, err);
+        try {
+            const cachedItem = localStorage.getItem(cacheKey);
+            if (cachedItem) {
+                const parsed = JSON.parse(cachedItem);
+                console.log("Returning expired cache due to network failure:", url);
+                return parsed.data;
+            }
+        } catch (e) {}
+        return null;
+    }
+}
+
+async function fetchJikanWithRetry(url, delayMs) {
+    const cacheKey = `api_cache_${url}`;
+    try {
+        const cachedItem = localStorage.getItem(cacheKey);
+        if (cachedItem) {
+            const parsed = JSON.parse(cachedItem);
+            const now = Date.now();
+            if (now - parsed.timestamp < 86400000) { // 24 hours
+                return parsed.data;
+            }
+        }
+    } catch (e) {}
+
+    try {
+        let res = await fetchWithTimeout(url, {}, 5000);
+        if (res.status === 429) {
+            console.warn(`[Jikan] Rate limited (429). Retrying in ${delayMs}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            res = await fetchWithTimeout(url, {}, 5000);
+        }
+        if (!res.ok) throw new Error(`Invalid response status: ${res.status}`);
+        const data = await res.json();
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: Date.now(),
+                data: data
+            }));
+        } catch (e) {}
+        return data;
+    } catch (err) {
+        console.error(`[Jikan] Fetch failed for ${url}:`, err);
+        try {
+            const cachedItem = localStorage.getItem(cacheKey);
+            if (cachedItem) {
+                const parsed = JSON.parse(cachedItem);
+                return parsed.data;
+            }
+        } catch (e) {}
+        return null;
+    }
+}
+
+function showUnavailableState(message) {
+    return `<div class="error-state" style="padding: 20px; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.05); margin: 10px 0; width: 100%;">
+                <span style="font-size: 24px; display: block; margin-bottom: 8px;">⚠</span>
+                <p style="font-size: 13px; margin: 0;">${message}</p>
+            </div>`;
+}
+
 // ============================================================
 // GUARD: Redirect if no selectedItem is present
 // ============================================================
@@ -75,9 +189,7 @@ async function searchYoutubeProxy(query) {
     
     for (const instance of instances) {
         try {
-            const res = await fetch(`${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, {
-                signal: AbortSignal.timeout(2000)
-            });
+            const res = await fetchWithTimeout(`${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, {}, 2000);
             if (res.ok) {
                 const data = await res.json();
                 if (data && Array.isArray(data) && data.length > 0 && data[0].videoId) {
@@ -179,9 +291,7 @@ function loadYoutubePlayerApi() {
 async function verifyEmbeddable(videoId) {
     try {
         const apiBase = window.location.port === '3000' ? '' : 'http://localhost:3000';
-        const res = await fetch(`${apiBase}/api/check-youtube-embed?id=${videoId}`, {
-            signal: AbortSignal.timeout(2000)
-        });
+        const res = await fetchWithTimeout(`${apiBase}/api/check-youtube-embed?id=${videoId}`, {}, 2000);
         if (res.ok) {
             const data = await res.json();
             return data.embeddable === true;
@@ -322,14 +432,10 @@ async function loadTrailer() {
             const id = item.mal_id;
             if (id) {
                 console.log(`[Trailer System] Querying Jikan API for Anime ID: ${id}`);
-                const response = await fetch(`https://api.jikan.moe/v4/anime/${id}`);
-                if (!response.ok) {
-                    throw new Error(`Jikan API request failed with status: ${response.status}`);
-                }
-                const data = await response.json();
+                const data = await fetchCachedJson(`https://api.jikan.moe/v4/anime/${id}`);
                 console.log("Jikan anime details:", data);
                 const animeData = data && data.data;
-
+ 
                 if (animeData) {
                     // Sync metadata into item and save to localStorage
                     item.episodes = animeData.episodes || item.episodes;
@@ -340,7 +446,7 @@ async function loadTrailer() {
                     item.mediaType = 'Anime';
                     item.media_type = 'Anime';
                     localStorage.setItem("selectedItem", JSON.stringify(item));
-
+ 
                     // Dynamically update metadata UI elements
                     setIf('detailsRating',      item.rating ? '⭐ ' + item.rating : 'N/A');
                     setIf('detailsDescription', item.description || 'No description available.');
@@ -349,7 +455,7 @@ async function loadTrailer() {
                     if (animeData.genres) {
                         populateGenres(animeData.genres);
                     }
-
+ 
                     // Try extracting youtube ID from Jikan trailer object
                     if (animeData.trailer) {
                         if (animeData.trailer.embed_url) {
@@ -359,28 +465,24 @@ async function loadTrailer() {
                     }
                 }
             }
-
+ 
             // Fallback: YouTube Search
             if (!youtubeId) {
                 console.log(`[Trailer System] Jikan trailer unavailable. Falling back to YouTube search...`);
                 youtubeId = await searchYoutubeProxy(`"${item.title}" official trailer`);
             }
-
+ 
         } else {
             // Movie/TV series flow: TMDB -> YouTube Search
             let tmdbId = item.id;
             let type = mediaType;
-
+ 
             let first = null;
             if (tmdbId && type) {
                 first = { id: tmdbId, media_type: type };
             } else {
                 console.log(`[Trailer System] Searching TMDB multi-search for: "${item.title}"`);
-                const searchRes = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(item.title)}`);
-                if (!searchRes.ok) {
-                    throw new Error(`TMDB Multi Search failed with status: ${searchRes.status}`);
-                }
-                const searchData = await searchRes.json();
+                const searchData = await fetchCachedJson(`${TMDB_API}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(item.title)}`);
                 console.log("TMDB search multi response:", searchData);
                 first = searchData && searchData.results && searchData.results[0];
                 if (first) {
@@ -393,24 +495,20 @@ async function loadTrailer() {
                     type = first.media_type.toLowerCase().includes('tv') ? 'tv' : 'movie';
                 }
             }
-
+ 
             if (first) {
                 const mediaId = tmdbId;
                 console.log(`[Trailer System] Querying TMDB details for: ${type}/${mediaId}`);
-                const detailsRes = await fetch(`https://api.themoviedb.org/3/${type}/${mediaId}?api_key=${API_KEY}`);
-                if (!detailsRes.ok) {
-                    throw new Error(`TMDB Details fetch failed with status: ${detailsRes.status}`);
-                }
-                const detailsData = await detailsRes.json();
+                const detailsData = await fetchCachedJson(`${TMDB_API}/${type}/${mediaId}?api_key=${API_KEY}`);
                 console.log("TMDB details response:", detailsData);
-
+ 
                 if (detailsData) {
                     item.rating = detailsData.vote_average ? detailsData.vote_average.toFixed(1) : item.rating;
                     item.description = detailsData.overview || item.description;
                     item.year = (detailsData.release_date || detailsData.first_air_date || '').slice(0, 4) || item.year;
                     item.episodes = detailsData.number_of_episodes || item.episodes;
                     localStorage.setItem("selectedItem", JSON.stringify(item));
-
+ 
                     // Dynamically update metadata UI elements
                     setIf('detailsRating',      item.rating ? '⭐ ' + item.rating : 'N/A');
                     setIf('detailsDescription', item.description || 'No description available.');
@@ -420,27 +518,23 @@ async function loadTrailer() {
                         populateGenres(detailsData.genres);
                     }
                 }
-
+ 
                 await trackUserActivity({
                     title: item.title,
                     type: type === 'tv' ? 'TV' : 'Movie',
-                    genres: detailsData.genres || []
+                    genres: (detailsData && detailsData.genres) || []
                 }, 'click');
-
+ 
                 console.log(`[Trailer System] Querying TMDB videos for: ${type}/${mediaId}`);
-                const videoRes = await fetch(`https://api.themoviedb.org/3/${type}/${mediaId}/videos?api_key=${API_KEY}`);
-                if (!videoRes.ok) {
-                    throw new Error(`TMDB Videos fetch failed with status: ${videoRes.status}`);
-                }
-                const videoData = await videoRes.json();
+                const videoData = await fetchCachedJson(`${TMDB_API}/${type}/${mediaId}/videos?api_key=${API_KEY}`);
                 if (type === "movie") {
                     console.log("TMDB movie videos:", videoData);
                 } else {
                     console.log("TMDB tv videos:", videoData);
                 }
-                youtubeId = findBestTrailer(videoData.results);
+                youtubeId = videoData && videoData.results ? findBestTrailer(videoData.results) : null;
             }
-
+ 
             // Fallback: YouTube Search
             if (!youtubeId) {
                 console.log(`[Trailer System] TMDB trailer unavailable. Falling back to YouTube search...`);
@@ -471,6 +565,7 @@ async function loadTrailer() {
                 localStorage.setItem(cacheKey, `blocked_${youtubeId}`);
                 showBlockedTrailerCard(youtubeId);
             } else {
+                localStorage.setItem(cacheKey, trailerUrl);
                 await renderYoutubePlayer(youtubeId, cacheKey, trailerUrl);
             }
         } else {
@@ -784,7 +879,7 @@ async function fetchTvSeasonEpisodes(tvId, seasonNumber) {
             return;
         }
         
-        const res = await fetch(`${TMDB_API}/tv/${tvId}/season/${seasonNumber}?api_key=${API_KEY}`);
+        const res = await fetchWithTimeout(`${TMDB_API}/tv/${tvId}/season/${seasonNumber}?api_key=${API_KEY}`, {}, 5000);
         if (!res.ok) throw new Error("Failed to fetch season episodes");
         const data = await res.json();
         const episodes = data.episodes || [];
@@ -804,7 +899,6 @@ async function fetchCastAndSimilar(id, mediaType) {
     const isAnime = !!item.mal_id || mediaType === 'anime';
     const isTv = mediaType === 'tv' || (item.type || '').toString().toLowerCase() === 'tv';
     const loadStart = performance.now();
-    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     const activeSeason = localStorage.getItem("currentSeason") || "1";
 
@@ -839,32 +933,14 @@ async function fetchCastAndSimilar(id, mediaType) {
     try {
         if (isAnime) {
             const [charRes, recRes, epRes] = await Promise.all([
-                fetch(`https://api.jikan.moe/v4/anime/${item.mal_id}/characters`).then(async r => {
-                    if (r.status === 429) {
-                        await delay(500);
-                        return fetch(`https://api.jikan.moe/v4/anime/${item.mal_id}/characters`).then(res => res.json());
-                    }
-                    return r.json();
-                }),
-                fetch(`https://api.jikan.moe/v4/anime/${item.mal_id}/recommendations`).then(async r => {
-                    if (r.status === 429) {
-                        await delay(1000);
-                        return fetch(`https://api.jikan.moe/v4/anime/${item.mal_id}/recommendations`).then(res => res.json());
-                    }
-                    return r.json();
-                }),
-                fetch(`https://api.jikan.moe/v4/anime/${item.mal_id}/episodes`).then(async r => {
-                    if (r.status === 429) {
-                        await delay(1500);
-                        return fetch(`https://api.jikan.moe/v4/anime/${item.mal_id}/episodes`).then(res => res.json());
-                    }
-                    return r.json();
-                }).catch(() => ({ data: [] }))
+                fetchJikanWithRetry(`https://api.jikan.moe/v4/anime/${item.mal_id}/characters`, 500),
+                fetchJikanWithRetry(`https://api.jikan.moe/v4/anime/${item.mal_id}/recommendations`, 1000),
+                fetchJikanWithRetry(`https://api.jikan.moe/v4/anime/${item.mal_id}/episodes`, 1500)
             ]);
 
-            const characters = Array.isArray(charRes.data) ? charRes.data : [];
-            const recommendations = Array.isArray(recRes.data) ? recRes.data : [];
-            const episodes = Array.isArray(epRes.data) ? epRes.data : [];
+            const characters = charRes && Array.isArray(charRes.data) ? charRes.data : [];
+            const recommendations = recRes && Array.isArray(recRes.data) ? recRes.data : [];
+            const episodes = epRes && Array.isArray(epRes.data) ? epRes.data : [];
 
             // Cache data
             localStorage.setItem(castKey, JSON.stringify(characters));
@@ -883,12 +959,12 @@ async function fetchCastAndSimilar(id, mediaType) {
             if (isTv) {
                 try {
                     // Fetch TV details to get list of seasons
-                    const tvDetails = await fetch(`${TMDB_API}/tv/${id}?api_key=${API_KEY}`).then(r => r.json());
-                    seasons = tvDetails.seasons || [];
+                    const tvDetails = await fetchCachedJson(`${TMDB_API}/tv/${id}?api_key=${API_KEY}`);
+                    seasons = tvDetails && tvDetails.seasons || [];
                     renderSeasonSelector(seasons, id);
 
-                    const seasonData = await fetch(`${TMDB_API}/tv/${id}/season/${activeSeason}?api_key=${API_KEY}`).then(r => r.json());
-                    episodes = seasonData.episodes || [];
+                    const seasonData = await fetchCachedJson(`${TMDB_API}/tv/${id}/season/${activeSeason}?api_key=${API_KEY}`);
+                    episodes = seasonData && seasonData.episodes || [];
 
                     // Cache season info
                     localStorage.setItem(`cache_ep_tmdb_tv_${id}_s${activeSeason}`, JSON.stringify(episodes));
@@ -899,12 +975,12 @@ async function fetchCastAndSimilar(id, mediaType) {
             }
 
             const [castRes, recRes] = await Promise.all([
-                fetch(`${TMDB_API}/${endpoint}/${id}/credits?api_key=${API_KEY}`).then(r => r.json()),
-                fetch(`${TMDB_API}/${endpoint}/${id}/similar?api_key=${API_KEY}`).then(r => r.json())
+                fetchCachedJson(`${TMDB_API}/${endpoint}/${id}/credits?api_key=${API_KEY}`),
+                fetchCachedJson(`${TMDB_API}/${endpoint}/${id}/similar?api_key=${API_KEY}`)
             ]);
 
-            const castList = Array.isArray(castRes.cast) ? castRes.cast : [];
-            const recList = Array.isArray(recRes.results) ? recRes.results : [];
+            const castList = castRes && Array.isArray(castRes.cast) ? castRes.cast : [];
+            const recList = recRes && Array.isArray(recRes.results) ? recRes.results : [];
 
             // Cache data
             localStorage.setItem(castKey, JSON.stringify(castList));
@@ -923,6 +999,20 @@ async function fetchCastAndSimilar(id, mediaType) {
         console.log(`[Performance] Details rendered from API FETCH in ${(loadEnd - loadStart).toFixed(2)}ms`);
     } catch (err) {
         console.error(`[Performance] Parallel fetch failed:`, err);
+        // Clear skeletons to avoid infinite loading
+        const castContainer = document.getElementById("castContainer");
+        const animeCharacters = document.getElementById("animeCharacters");
+        const similarContainer = document.getElementById("similarContainer");
+        const episodesContainer = document.getElementById("episodesContainer");
+        
+        if (isAnime) {
+            if (animeCharacters) animeCharacters.innerHTML = "<p>No character information available.</p>";
+            if (episodesContainer) episodesContainer.innerHTML = "<p>Episodes unavailable.</p>";
+        } else {
+            if (castContainer) castContainer.innerHTML = "<p>No cast information available.</p>";
+            if (isTv && episodesContainer) episodesContainer.innerHTML = "<p>Episodes unavailable.</p>";
+        }
+        if (similarContainer) similarContainer.innerHTML = "<p>No similar titles found.</p>";
     }
 }
 

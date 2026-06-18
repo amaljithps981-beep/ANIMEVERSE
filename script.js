@@ -5,6 +5,10 @@ import { processAiQuery, saveToHistory, trackAnalytics } from './ai.js';
 import { triggerSmartSuggestions } from './smartSearch.js';
 import { TMDB_API_BASE, TMDB_API_KEY, TMDB_IMAGE_BASE } from './config.js';
 
+const API_KEY = TMDB_API_KEY;
+const TMDB_API = TMDB_API_BASE;
+const IMG = TMDB_IMAGE_BASE;
+
 const _hiddenContentSet = new Set();
 const _apiCache = new Map();
 
@@ -23,6 +27,13 @@ window.showEmptyState = function(message = "No items found.") {
             </div>`;
 };
 
+window.showUnavailableState = function(message = "Content unavailable. Please try again later.") {
+    return `<div class="error-state" style="padding: 20px; text-align: center; color: var(--text-muted); background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.05); margin: 10px 0; width: 100%;">
+                <span style="font-size: 24px; display: block; margin-bottom: 8px;">⚠</span>
+                <p style="font-size: 13px; margin: 0;">${message}</p>
+            </div>`;
+};
+
 fetchDbToStorage("watchHistory");
 fetchDbToStorage("continueWatching");
 fetchDbToStorage("favorites");
@@ -36,16 +47,65 @@ let animePage = 1;
 let moviePage = 1;
 let tvPage = 1;
 
+async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (err) {
+        clearTimeout(id);
+        throw err;
+    }
+}
+
 async function fetchCachedJson(url) {
     if (_apiCache.has(url)) return _apiCache.get(url);
+
+    const cacheKey = `api_cache_${url}`;
     try {
-        const res = await fetch(url);
+        const cachedItem = localStorage.getItem(cacheKey);
+        if (cachedItem) {
+            const parsed = JSON.parse(cachedItem);
+            const now = Date.now();
+            if (now - parsed.timestamp < 3600000) { // 1 hour expiration
+                _apiCache.set(url, parsed.data);
+                return parsed.data;
+            }
+        }
+    } catch (e) {
+        console.warn("Error reading API cache from localStorage:", e);
+    }
+
+    try {
+        const res = await fetchWithTimeout(url, {}, 5000);
         const data = await res.json();
-        if (!res || !data) throw new Error("Invalid response");
+        if (!res.ok || !data) throw new Error("Invalid response");
+        
         _apiCache.set(url, data);
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: Date.now(),
+                data: data
+            }));
+        } catch (e) {
+            console.warn("Error writing API cache to localStorage:", e);
+        }
         return data;
     } catch (err) {
-        console.error("Jikan API error:", err);
+        console.error("API error for url:", url, err);
+        try {
+            const cachedItem = localStorage.getItem(cacheKey);
+            if (cachedItem) {
+                const parsed = JSON.parse(cachedItem);
+                console.log("Returning expired cache due to network failure:", url);
+                return parsed.data;
+            }
+        } catch (e) {}
         return null;
     }
 }
@@ -542,61 +602,113 @@ document.addEventListener("click", (e) => {
 
 // Category loads helpers
 async function loadTrendingThisWeek() {
-    const results = await fetchData(`${TMDB_API}/trending/all/week?api_key=${API_KEY}`);
     const container = document.getElementById("trendingWeekContainer");
-    if (container) renderCarouselCards(results, container);
+    try {
+        const results = await fetchData(`${TMDB_API}/trending/all/week?api_key=${API_KEY}`);
+        if (container) {
+            if (results && results.length > 0) {
+                renderCarouselCards(results, container);
+            } else {
+                container.innerHTML = showUnavailableState("Trending content is currently unavailable.");
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load trending content:", e);
+        if (container) container.innerHTML = showUnavailableState("Trending content is currently unavailable.");
+    }
 }
 
 async function loadTopRatedMovies() {
-    const results = await fetchData(`${TMDB_API}/movie/top_rated?api_key=${API_KEY}`);
     const container = document.getElementById("topRatedMoviesContainer");
-    if (container) renderCarouselCards(results, container, 'movie');
+    try {
+        const results = await fetchData(`${TMDB_API}/movie/top_rated?api_key=${API_KEY}`);
+        if (container) {
+            if (results && results.length > 0) {
+                renderCarouselCards(results, container, 'movie');
+            } else {
+                container.innerHTML = showUnavailableState("Top rated movies are currently unavailable.");
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load top rated movies:", e);
+        if (container) container.innerHTML = showUnavailableState("Top rated movies are currently unavailable.");
+    }
 }
 
 async function loadTopRatedTV() {
-    const results = await fetchData(`${TMDB_API}/tv/top_rated?api_key=${API_KEY}`);
     const container = document.getElementById("topRatedTVContainer");
-    if (container) renderCarouselCards(results, container, 'tv');
+    try {
+        const results = await fetchData(`${TMDB_API}/tv/top_rated?api_key=${API_KEY}`);
+        if (container) {
+            if (results && results.length > 0) {
+                renderCarouselCards(results, container, 'tv');
+            } else {
+                container.innerHTML = showUnavailableState("Top rated TV series are currently unavailable.");
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load top rated TV series:", e);
+        if (container) container.innerHTML = showUnavailableState("Top rated TV series are currently unavailable.");
+    }
 }
 
 async function loadTopRatedAnime() {
-    const data = await fetchCachedJson(`https://api.jikan.moe/v4/top/anime?filter=bypopularity`);
     const container = document.getElementById("topRatedAnimeContainer");
-    if (container && data && data.data) {
-        const items = data.data.map(item => ({
-            title:       item.title,
-            poster_path: item.images && item.images.jpg ? item.images.jpg.large_image_url : "",
-            vote_average: item.score,
-            overview:    item.synopsis,
-            type:        'Anime',
-            media_type:  'Anime',
-            episodes:    item.episodes,
-            mal_id:      item.mal_id,
-            id:          null,
-            release_date: item.aired && item.aired.from ? item.aired.from : ''
-        }));
-        renderCarouselCards(items, container);
+    try {
+        const data = await fetchCachedJson(`https://api.jikan.moe/v4/top/anime?filter=bypopularity`);
+        if (container) {
+            if (data && Array.isArray(data.data) && data.data.length > 0) {
+                const items = data.data.map(item => ({
+                    title:       item.title,
+                    poster_path: item.images && item.images.jpg ? item.images.jpg.large_image_url : "",
+                    vote_average: item.score,
+                    overview:    item.synopsis,
+                    type:        'Anime',
+                    media_type:  'Anime',
+                    episodes:    item.episodes,
+                    mal_id:      item.mal_id,
+                    id:          null,
+                    release_date: item.aired && item.aired.from ? item.aired.from : ''
+                }));
+                renderCarouselCards(items, container);
+            } else {
+                container.innerHTML = showUnavailableState("Top rated anime is currently unavailable.");
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load top rated anime:", e);
+        if (container) container.innerHTML = showUnavailableState("Top rated anime is currently unavailable.");
     }
 }
 
 async function loadNewReleases() {
-    const results = await fetchData(`${TMDB_API}/movie/now_playing?api_key=${API_KEY}`);
     const container = document.getElementById("newReleasesContainer");
-    if (container) renderCarouselCards(results, container, 'movie');
+    try {
+        const results = await fetchData(`${TMDB_API}/movie/now_playing?api_key=${API_KEY}`);
+        if (container) {
+            if (results && results.length > 0) {
+                renderCarouselCards(results, container, 'movie');
+            } else {
+                container.innerHTML = showUnavailableState("New releases are currently unavailable.");
+            }
+        }
+    } catch (e) {
+        console.error("Failed to load new releases:", e);
+        if (container) container.innerHTML = showUnavailableState("New releases are currently unavailable.");
+    }
 }
 
 async function loadAnime() {
+    const container = document.getElementById("animeContainer");
+    if (!container) return;
     try {
         const data = await fetchCachedJson(`https://api.jikan.moe/v4/top/anime?page=${animePage}`);
-        const container = document.getElementById("animeContainer");
-        if (!container) return;
-
         if (firstAnimeLoad) {
             container.innerHTML = "";
             firstAnimeLoad = false;
         }
 
-        if (data && Array.isArray(data.data)) {
+        if (data && Array.isArray(data.data) && data.data.length > 0) {
             data.data.forEach(item => {
                 createCard(
                     {
@@ -616,62 +728,80 @@ async function loadAnime() {
             });
         } else {
             console.warn("loadAnime: Invalid Jikan API response format", data);
+            if (container.children.length === 0) {
+                container.innerHTML = showUnavailableState("Anime catalog is currently unavailable.");
+            }
         }
         if (container.updateCarousel) {
             container.updateCarousel();
         }
     } catch (error) {
         console.error("Failed to load anime:", error);
+        if (container.children.length === 0) {
+            container.innerHTML = showUnavailableState("Anime catalog is currently unavailable.");
+        }
     }
 }
 
 async function loadMovies() {
+    const container = document.getElementById("popularMovies");
+    if (!container) return;
     try {
         const data = await fetchData(`${TMDB_API}/movie/popular?api_key=${API_KEY}&page=${moviePage}`);
-        const container = document.getElementById("popularMovies");
-        if (!container) return;
-
         if (firstMovieLoad) {
             container.innerHTML = "";
             firstMovieLoad = false;
         }
 
-        if (data && Array.isArray(data)) {
+        if (data && Array.isArray(data) && data.length > 0) {
             data.forEach(item => {
                 item.media_type = 'movie';
                 createCard(item, container);
             });
+        } else {
+            if (container.children.length === 0) {
+                container.innerHTML = showUnavailableState("Popular movies are currently unavailable.");
+            }
         }
         if (container.updateCarousel) {
             container.updateCarousel();
         }
     } catch (error) {
         console.error("Failed to load movies:", error);
+        if (container.children.length === 0) {
+            container.innerHTML = showUnavailableState("Popular movies are currently unavailable.");
+        }
     }
 }
 
 async function loadTV() {
+    const container = document.getElementById("popularTV");
+    if (!container) return;
     try {
         const data = await fetchData(`${TMDB_API}/tv/popular?api_key=${API_KEY}&page=${tvPage}`);
-        const container = document.getElementById("popularTV");
-        if (!container) return;
-
         if (firstTVLoad) {
             container.innerHTML = "";
             firstTVLoad = false;
         }
 
-        if (data && Array.isArray(data)) {
+        if (data && Array.isArray(data) && data.length > 0) {
             data.forEach(item => {
                 item.media_type = 'tv';
                 createCard(item, container);
             });
+        } else {
+            if (container.children.length === 0) {
+                container.innerHTML = showUnavailableState("Popular TV series are currently unavailable.");
+            }
         }
         if (container.updateCarousel) {
             container.updateCarousel();
         }
     } catch (error) {
         console.error("Failed to load TV series:", error);
+        if (container.children.length === 0) {
+            container.innerHTML = showUnavailableState("Popular TV series are currently unavailable.");
+        }
     }
 }
 // ======================
@@ -1104,7 +1234,7 @@ loadMoreBtn.addEventListener(
 // ======================
 // LOAD FEATURED AND HIDDEN CONTENT
 // ======================
-async function loadAdminManagedContent() {
+async function loadHiddenContent() {
     try {
         const hiddenSnap = await awaitWithTimeout(getDocs(collection(db, "hiddenContent")), 1500);
         if (hiddenSnap) {
@@ -1117,10 +1247,18 @@ async function loadAdminManagedContent() {
                 }
             });
         }
+    } catch (e) {
+        console.warn("Error loading hidden content:", e);
+    }
+}
 
+async function loadFeaturedContent() {
+    const featuredContainer = document.getElementById("featuredContainer");
+    const featuredSection = document.getElementById("featuredSection");
+    try {
         const featuredSnap = await awaitWithTimeout(getDocs(collection(db, "featuredContent")), 1500);
-        const featuredContainer = document.getElementById("featuredContainer");
-        const featuredSection = document.getElementById("featuredSection");
+        if (featuredContainer) featuredContainer.innerHTML = "";
+        
         if (featuredContainer && featuredSection && featuredSnap && !featuredSnap.empty) {
             const items = [];
             featuredSnap.forEach(doc => {
@@ -1138,10 +1276,16 @@ async function loadAdminManagedContent() {
                 featuredSection.classList.remove("hidden");
                 items.sort((a, b) => new Date(b.featuredAt || 0) - new Date(a.featuredAt || 0));
                 renderCarouselCards(items, featuredContainer);
+            } else {
+                featuredSection.classList.add("hidden");
             }
+        } else {
+            if (featuredSection) featuredSection.classList.add("hidden");
         }
     } catch (e) {
-        console.warn("Error loading admin managed content:", e);
+        console.warn("Error loading featured content:", e);
+        if (featuredContainer) featuredContainer.innerHTML = "";
+        if (featuredSection) featuredSection.classList.add("hidden");
     }
 }
 
@@ -1151,17 +1295,19 @@ async function loadAdminManagedContent() {
 initCarouselNavigation();
 initHeroRotation();
 
-loadAdminManagedContent().then(() => {
-    loadTrendingThisWeek();
-    loadTopRatedMovies();
-    loadTopRatedTV();
-    loadTopRatedAnime();
-    loadNewReleases();
-
-    loadAnime();
-    loadMovies();
-    loadTV();
-    loadContinueWatching();
+loadHiddenContent().then(() => {
+    Promise.all([
+        loadFeaturedContent(),
+        loadTrendingThisWeek(),
+        loadTopRatedMovies(),
+        loadTopRatedTV(),
+        loadTopRatedAnime(),
+        loadNewReleases(),
+        loadAnime(),
+        loadMovies(),
+        loadTV(),
+        loadContinueWatching()
+    ]);
 });
 // ======================
 // PROFILE DROPDOWN
